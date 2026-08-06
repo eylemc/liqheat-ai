@@ -1,11 +1,18 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "liqheat-radar-outcome-stability-v1";
-  const ENTER_CONFIDENCE = 0.62;
-  const HOLD_CONFIDENCE = 0.54;
-  const REVERSE_CONFIDENCE = 0.66;
-  const REQUIRED_CONFIRMATIONS = 2;
+  const STORAGE_KEY = "liqheat-radar-outcome-stability-v2";
+
+  // The backend refreshes roughly every 75 seconds while the UI polls every
+  // 15 seconds. Confirmations therefore count only distinct backend snapshots,
+  // never repeated reads of the same payload.
+  const ENTER_CONFIDENCE = 0.64;
+  const EXIT_CONFIDENCE = 0.56;
+  const REVERSE_CONFIDENCE = 0.68;
+  const ENTER_CONFIRMATIONS = 3;
+  const EXIT_CONFIRMATIONS = 2;
+  const REVERSE_CONFIRMATIONS = 3;
+  const MIN_HOLD_MS = 5 * 60 * 1000;
 
   const originalFetch = window.fetch.bind(window);
 
@@ -21,7 +28,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (_) {
-      // The radar must keep working even when storage is unavailable.
+      // Radar rendering must not depend on storage availability.
     }
   }
 
@@ -32,108 +39,158 @@
     const total = upward + downward;
 
     if (!Number.isFinite(total) || total <= 0) {
-      return {
-        candidate: "NEUTRAL",
-        confidence: 0,
-        upwardShare: 0.5,
-      };
+      return { candidate: "NEUTRAL", confidence: 0, upwardShare: 0.5 };
     }
 
     const upwardShare = upward / total;
     const downwardShare = downward / total;
-    const confidence = Math.max(upwardShare, downwardShare);
-    const candidate = upwardShare >= downwardShare ? "UPWARD" : "DOWNWARD";
 
     return {
-      candidate,
-      confidence,
+      candidate: upwardShare >= downwardShare ? "UPWARD" : "DOWNWARD",
+      confidence: Math.max(upwardShare, downwardShare),
       upwardShare,
     };
   }
 
-  function stabilizeItem(item, state) {
+  function normalizePrevious(previous = {}) {
+    return {
+      outcome: previous.outcome || "NEUTRAL",
+      pending: previous.pending || null,
+      pendingConfirmations: Number(previous.pendingConfirmations || 0),
+      weakConfirmations: Number(previous.weakConfirmations || 0),
+      changedAt: previous.changedAt || null,
+      lastSnapshotKey: previous.lastSnapshotKey || null,
+    };
+  }
+
+  function snapshotKey(payload, item) {
+    return String(
+      item?.logged_at || payload?.generated_at || payload?.last_success_at || ""
+    );
+  }
+
+  function incrementPending(previous, candidate) {
+    if (previous.pending === candidate) {
+      return {
+        pending: candidate,
+        pendingConfirmations: previous.pendingConfirmations + 1,
+      };
+    }
+
+    return { pending: candidate, pendingConfirmations: 1 };
+  }
+
+  function stabilizeItem(item, state, payload) {
     const symbol = String(item?.symbol || "UNKNOWN").toUpperCase();
     const evidence = directionalEvidence(item);
-    const previous = state[symbol] || {
-      outcome: "NEUTRAL",
-      pending: null,
-      confirmations: 0,
-      changedAt: null,
-    };
+    const previous = normalizePrevious(state[symbol]);
+    const currentSnapshotKey = snapshotKey(payload, item);
 
-    let outcome = previous.outcome || "NEUTRAL";
-    let pending = previous.pending || null;
-    let confirmations = Number(previous.confirmations || 0);
+    // A 15-second browser poll may see the same 75-second backend snapshot
+    // several times. Repeated reads must never advance the state machine.
+    if (currentSnapshotKey && currentSnapshotKey === previous.lastSnapshotKey) {
+      return applyOutcome(item, previous.outcome, {
+        ...previous,
+        confidence: evidence.confidence,
+        upwardShare: evidence.upwardShare,
+      });
+    }
 
-    if (evidence.confidence < HOLD_CONFIDENCE) {
-      outcome = "NEUTRAL";
-      pending = null;
-      confirmations = 0;
-    } else if (outcome === "NEUTRAL") {
+    let outcome = previous.outcome;
+    let pending = previous.pending;
+    let pendingConfirmations = previous.pendingConfirmations;
+    let weakConfirmations = previous.weakConfirmations;
+    const now = Date.now();
+    const changedAtMs = previous.changedAt ? Date.parse(previous.changedAt) : 0;
+    const holdElapsed = !changedAtMs || now - changedAtMs >= MIN_HOLD_MS;
+
+    if (outcome === "NEUTRAL") {
+      weakConfirmations = 0;
+
       if (evidence.confidence >= ENTER_CONFIDENCE) {
-        if (pending === evidence.candidate) {
-          confirmations += 1;
-        } else {
-          pending = evidence.candidate;
-          confirmations = 1;
-        }
+        const next = incrementPending(previous, evidence.candidate);
+        pending = next.pending;
+        pendingConfirmations = next.pendingConfirmations;
 
-        if (confirmations >= REQUIRED_CONFIRMATIONS) {
+        if (pendingConfirmations >= ENTER_CONFIRMATIONS) {
           outcome = evidence.candidate;
           pending = null;
-          confirmations = 0;
+          pendingConfirmations = 0;
         }
       } else {
         pending = null;
-        confirmations = 0;
+        pendingConfirmations = 0;
       }
-    } else if (evidence.candidate === outcome) {
+    } else if (evidence.candidate === outcome && evidence.confidence >= EXIT_CONFIDENCE) {
+      // Supporting evidence resets all exit/reversal pressure.
       pending = null;
-      confirmations = 0;
-    } else if (evidence.confidence >= REVERSE_CONFIDENCE) {
-      if (pending === evidence.candidate) {
-        confirmations += 1;
-      } else {
-        pending = evidence.candidate;
-        confirmations = 1;
-      }
+      pendingConfirmations = 0;
+      weakConfirmations = 0;
+    } else if (evidence.candidate !== outcome && evidence.confidence >= REVERSE_CONFIDENCE && holdElapsed) {
+      // Keep displaying the established direction while the opposite case is
+      // being confirmed. Do not flash NEUTRAL between every noisy observation.
+      const next = incrementPending(previous, evidence.candidate);
+      pending = next.pending;
+      pendingConfirmations = next.pendingConfirmations;
+      weakConfirmations = 0;
 
-      if (confirmations >= REQUIRED_CONFIRMATIONS) {
+      if (pendingConfirmations >= REVERSE_CONFIRMATIONS) {
         outcome = evidence.candidate;
         pending = null;
-        confirmations = 0;
-      } else {
+        pendingConfirmations = 0;
+      }
+    } else if (evidence.confidence < EXIT_CONFIDENCE && holdElapsed) {
+      // Only sustained weak evidence removes an established directional call.
+      weakConfirmations += 1;
+      pending = null;
+      pendingConfirmations = 0;
+
+      if (weakConfirmations >= EXIT_CONFIRMATIONS) {
         outcome = "NEUTRAL";
+        weakConfirmations = 0;
       }
     } else {
-      outcome = "NEUTRAL";
+      // Ambiguous or opposite-but-not-strong-enough evidence does not cause a
+      // visual state change. Preserve the last confirmed outcome.
       pending = null;
-      confirmations = 0;
+      pendingConfirmations = 0;
+      weakConfirmations = 0;
     }
 
     const changed = outcome !== previous.outcome;
-
-    state[symbol] = {
+    const nextState = {
       outcome,
       pending,
-      confirmations,
+      pendingConfirmations,
+      weakConfirmations,
       changedAt: changed ? new Date().toISOString() : previous.changedAt,
+      lastSnapshotKey: currentSnapshotKey || previous.lastSnapshotKey,
       confidence: Number(evidence.confidence.toFixed(6)),
       upwardShare: Number(evidence.upwardShare.toFixed(6)),
     };
 
+    state[symbol] = nextState;
+    return applyOutcome(item, outcome, nextState);
+  }
+
+  function applyOutcome(item, outcome, state) {
     const stabilized = {
       ...item,
       expected_outcome: outcome,
       outcome_stability: {
-        mode: "neutral-plus-hysteresis",
-        confidence: Number(evidence.confidence.toFixed(6)),
-        upward_share: Number(evidence.upwardShare.toFixed(6)),
-        pending_direction: pending,
-        pending_confirmations: confirmations,
-        required_confirmations: REQUIRED_CONFIRMATIONS,
+        mode: "snapshot-aware-state-machine-v2",
+        confidence: Number(Number(state.confidence || 0).toFixed(6)),
+        upward_share: Number(Number(state.upwardShare ?? 0.5).toFixed(6)),
+        pending_direction: state.pending || null,
+        pending_confirmations: Number(state.pendingConfirmations || 0),
+        weak_confirmations: Number(state.weakConfirmations || 0),
+        enter_confirmations: ENTER_CONFIRMATIONS,
+        exit_confirmations: EXIT_CONFIRMATIONS,
+        reverse_confirmations: REVERSE_CONFIRMATIONS,
         enter_confidence: ENTER_CONFIDENCE,
+        exit_confidence: EXIT_CONFIDENCE,
         reverse_confidence: REVERSE_CONFIDENCE,
+        minimum_hold_seconds: MIN_HOLD_MS / 1000,
       },
     };
 
@@ -155,17 +212,20 @@
     if (!payload || !Array.isArray(payload.radar)) return payload;
 
     const state = loadState();
-    const radar = payload.radar.map((item) => stabilizeItem(item, state));
+    const radar = payload.radar.map((item) => stabilizeItem(item, state, payload));
     saveState(state);
 
     return {
       ...payload,
       outcome_stability: {
-        mode: "neutral-plus-hysteresis",
+        mode: "snapshot-aware-state-machine-v2",
         enter_confidence: ENTER_CONFIDENCE,
-        hold_confidence: HOLD_CONFIDENCE,
+        exit_confidence: EXIT_CONFIDENCE,
         reverse_confidence: REVERSE_CONFIDENCE,
-        required_confirmations: REQUIRED_CONFIRMATIONS,
+        enter_confirmations: ENTER_CONFIRMATIONS,
+        exit_confirmations: EXIT_CONFIRMATIONS,
+        reverse_confirmations: REVERSE_CONFIRMATIONS,
+        minimum_hold_seconds: MIN_HOLD_MS / 1000,
       },
       radar,
     };
@@ -175,14 +235,10 @@
     const response = await originalFetch(...args);
     const requestUrl = String(args[0]?.url || args[0] || "");
 
-    if (!requestUrl.includes("/radar")) {
-      return response;
-    }
+    if (!requestUrl.includes("/radar")) return response;
 
     const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      return response;
-    }
+    if (!contentType.includes("application/json")) return response;
 
     try {
       const payload = await response.clone().json();
@@ -199,50 +255,4 @@
       return response;
     }
   };
-})();
-
-(() => {
-  "use strict";
-
-  const STYLE_ID = "matrixSignalLabelStyles";
-
-  function installStyles() {
-    if (document.getElementById(STYLE_ID)) return;
-
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = `
-      .matrix-signals-label {
-        display: block;
-        margin: 2px 0 8px;
-        color: var(--muted);
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function addLabels() {
-    document.querySelectorAll(".radar-card .matrix-strip").forEach((strip) => {
-      const previous = strip.previousElementSibling;
-      if (previous?.classList.contains("matrix-signals-label")) return;
-
-      const label = document.createElement("span");
-      label.className = "matrix-signals-label";
-      label.textContent = "Matrix Signals";
-      strip.parentNode.insertBefore(label, strip);
-    });
-  }
-
-  installStyles();
-  addLabels();
-
-  const observer = new MutationObserver(addLabels);
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
 })();
