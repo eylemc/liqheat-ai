@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LiqHeat AI Radar</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="brand-row">
+          <div class="logo-mark">T</div>
+          <div>
+            <h1>LIQHEAT AI RADAR</h1>
+            <p>AI-Powered Liquidation Intelligence</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="engine-panel">
+        <div class="engine-state">
+          <span id="engineDot" class="status-dot loading"></span>
+          <span id="engineStatus">CONNECTING</span>
+        </div>
+        <div class="engine-meta">
+          <span>Last refresh</span>
+          <strong id="lastRefresh">—</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="summary-grid">
+      <article class="summary-card">
+        <span class="summary-label">Markets monitored</span>
+        <strong id="symbolCount">—</strong>
+        <small>24h topology stream</small>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-label">Freshest data</span>
+        <strong id="freshestAge">—</strong>
+        <small>Supabase live snapshot</small>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-label">Highest liquidity pressure</span>
+        <strong id="highestRisk">—</strong>
+        <small id="highestSymbol">Waiting for radar</small>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-label">Active watches</span>
+        <strong id="activeWatches">—</strong>
+        <small>Watch, alert or critical</small>
+      </article>
+    </section>
+
+    <section class="section-heading">
+      <div>
+        <span class="eyebrow">LIVE MARKET RADAR</span>
+        <h2>When should you start paying attention?</h2>
+      </div>
+      <div class="refresh-row">
+        <button id="refreshButton" class="button-primary">Refresh now</button>
+        <span id="countdown">Auto refresh in 15s</span>
+      </div>
+    </section>
+
+    <section id="radarCards" class="radar-grid">
+      <div class="loading-card">Loading live radar…</div>
+    </section>
+
+    <section class="table-section">
+      <div class="table-title-row">
+        <div>
+          <span class="eyebrow">MARKET OVERVIEW</span>
+          <h2>Radar ranking</h2>
+        </div>
+        <button id="jsonToggle" class="button-secondary">Raw JSON</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Market</th>
+              <th>Liquidity Pressure</th>
+              <th>Status</th>
+              <th>Bias</th>
+              <th>Direction confidence</th>
+              <th>Price</th>
+              <th>Data age</th>
+            </tr>
+          </thead>
+          <tbody id="radarTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="jsonPanel" class="json-panel hidden">
+      <div class="json-header">
+        <strong>Raw engine response</strong>
+        <button id="jsonClose" class="icon-button">×</button>
+      </div>
+      <pre id="rawJson">{}</pre>
+    </section>
+
+    <footer>
+      <span>Textara Squeeze Radar v0.2</span>
+      <span>Decision-support only — execution remains with the trader.</span>
+    </footer>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

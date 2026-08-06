@@ -15,3 +15,11 @@ reports/
 *.db
 
 .DS_Store
+
+# Local patch backups
+*.before-*
+src/*.before-*
+
+# Runtime artifacts
+catboost_info/
+static/*.map
