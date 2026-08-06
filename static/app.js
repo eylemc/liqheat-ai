@@ -57,6 +57,37 @@ function opportunity(item) {
   return String(item.opportunity || item.status || "NORMAL").toUpperCase();
 }
 
+function expectedOutcome(item) {
+  const prediction = String(
+    item.raw_prediction || item.prediction || ""
+  ).toUpperCase();
+
+  // Important product mapping:
+  // SHORT_SQUEEZE means upward price pressure.
+  // LONG_SQUEEZE means downward price pressure.
+  if (prediction === "SHORT_SQUEEZE") {
+    return {
+      label: "UPWARD",
+      arrow: "↑",
+      className: "outcome-upward",
+    };
+  }
+
+  if (prediction === "LONG_SQUEEZE") {
+    return {
+      label: "DOWNWARD",
+      arrow: "↓",
+      className: "outcome-downward",
+    };
+  }
+
+  return {
+    label: "UNCONFIRMED",
+    arrow: "•",
+    className: "outcome-unconfirmed",
+  };
+}
+
 function liquidityPressure(item) {
   if (item.liquidity_pressure_score !== undefined) {
     return Number(item.liquidity_pressure_score);
@@ -137,6 +168,74 @@ function cardGlow(item) {
   return "rgba(84,200,255,.10)";
 }
 
+function installOutcomeStyles() {
+  if (document.getElementById("expectedOutcomeStyles")) return;
+
+  const style = document.createElement("style");
+  style.id = "expectedOutcomeStyles";
+  style.textContent = `
+    .expected-outcome {
+      margin: 16px 0;
+      padding: 13px 14px;
+      border: 1px solid rgba(255,255,255,.075);
+      border-radius: 12px;
+      background: rgba(255,255,255,.035);
+      box-shadow: inset 0 0 24px rgba(255,255,255,.018);
+    }
+
+    .expected-outcome-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .expected-outcome-value {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: .035em;
+      line-height: 1;
+    }
+
+    .expected-outcome-arrow {
+      font-size: 29px;
+      line-height: .8;
+    }
+
+    .outcome-upward .expected-outcome-value {
+      color: var(--green);
+      text-shadow: 0 0 22px rgba(76,229,166,.16);
+    }
+
+    .outcome-downward .expected-outcome-value {
+      color: var(--red);
+      text-shadow: 0 0 22px rgba(255,111,125,.16);
+    }
+
+    .outcome-unconfirmed .expected-outcome-value {
+      color: var(--amber);
+    }
+
+    .table-outcome {
+      font-weight: 800;
+      letter-spacing: .035em;
+      white-space: nowrap;
+    }
+
+    .table-outcome.outcome-upward { color: var(--green); }
+    .table-outcome.outcome-downward { color: var(--red); }
+    .table-outcome.outcome-unconfirmed { color: var(--amber); }
+  `;
+
+  document.head.appendChild(style);
+}
+
 function renderCard(item) {
   const score = radarScore(item);
   const pressure = liquidityPressure(item);
@@ -144,6 +243,7 @@ function renderCard(item) {
   const matrix = matrixData(item);
   const opportunityValue = opportunity(item);
   const gate = String(item.matrix_gate || "UNAVAILABLE").toUpperCase();
+  const outcome = expectedOutcome(item);
 
   return `
     <article class="radar-card" style="--glow:${cardGlow(item)}">
@@ -166,6 +266,14 @@ function renderCard(item) {
         </div>
       </div>
 
+      <div class="expected-outcome ${outcome.className}">
+        <span class="expected-outcome-label">Expected Outcome</span>
+        <div class="expected-outcome-value">
+          <span class="expected-outcome-arrow">${outcome.arrow}</span>
+          <strong>${outcome.label}</strong>
+        </div>
+      </div>
+
       <div class="matrix-strip">${matrixTimeframeStrip(item)}</div>
 
       <div class="metric-stack">
@@ -185,10 +293,6 @@ function renderCard(item) {
           <span>Matrix gate</span>
           <strong class="gate-${gate}">${gate}</strong>
         </div>
-        <div class="metric-row">
-          <span>Topology event</span>
-          <strong>${humanize(item.raw_prediction || item.prediction, "UNCONFIRMED")}</strong>
-        </div>
       </div>
 
       ${item.matrix_agreement === false
@@ -206,10 +310,10 @@ function renderCard(item) {
 }
 
 function renderTableRow(item) {
-  const matrix = matrixData(item);
   const alignment = matrixAlignment(item);
   const opportunityValue = opportunity(item);
   const gate = String(item.matrix_gate || "UNAVAILABLE").toUpperCase();
+  const outcome = expectedOutcome(item);
 
   return `
     <tr>
@@ -217,6 +321,7 @@ function renderTableRow(item) {
       <td><strong>${item.symbol}</strong></td>
       <td class="table-risk">${formatNumber(radarScore(item), 2)}</td>
       <td><span class="status-pill opportunity-${opportunityValue}">${opportunityValue}</span></td>
+      <td class="table-outcome ${outcome.className}">${outcome.arrow} ${outcome.label}</td>
       <td class="matrix-direction-${matrixDirection(item)}">${matrixDirection(item)}</td>
       <td>${alignment === null ? "—" : `${formatNumber(alignment, 1)}%`}</td>
       <td><span class="gate-pill gate-${gate}">${gate}</span></td>
@@ -225,6 +330,23 @@ function renderTableRow(item) {
       <td>${formatAge(item.age_seconds)}</td>
     </tr>
   `;
+}
+
+function ensureOutcomeTableHeader() {
+  const headerRow = document.querySelector(".table-section thead tr");
+  if (!headerRow || headerRow.querySelector('[data-outcome-header="true"]')) return;
+
+  const headers = headerRow.querySelectorAll("th");
+  const matrixHeader = Array.from(headers).find(
+    (header) => header.textContent.trim().toUpperCase() === "MATRIX"
+  );
+
+  if (!matrixHeader) return;
+
+  const outcomeHeader = document.createElement("th");
+  outcomeHeader.textContent = "Expected outcome";
+  outcomeHeader.dataset.outcomeHeader = "true";
+  headerRow.insertBefore(outcomeHeader, matrixHeader);
 }
 
 function render(payload) {
@@ -260,6 +382,7 @@ function render(payload) {
     ? radar.map(renderCard).join("")
     : '<div class="loading-card">No live radar data available.</div>';
 
+  ensureOutcomeTableHeader();
   $("radarTable").innerHTML = radar.map(renderTableRow).join("");
   $("rawJson").textContent = JSON.stringify(payload, null, 2);
 }
@@ -310,5 +433,6 @@ $("refreshButton").addEventListener("click", () => loadRadar(true));
 $("jsonToggle").addEventListener("click", () => $("jsonPanel").classList.toggle("hidden"));
 $("jsonClose").addEventListener("click", () => $("jsonPanel").classList.add("hidden"));
 
+installOutcomeStyles();
 loadRadar(false);
 startCountdown();
