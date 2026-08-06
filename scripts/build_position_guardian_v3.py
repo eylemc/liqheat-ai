@@ -124,12 +124,22 @@ def regime_masks(df,side):
     signed=pd.to_numeric(df.signed_distance_edge,errors='coerce').fillna(0)
     adverse_imbalance=(imbal<0) if side=='LONG' else (imbal>0)
     adverse_distance=(signed<0) if side=='LONG' else (signed>0)
+
+    adverse_side_np = adverse_side.fillna(False).to_numpy(dtype=bool)
+    adverse_imbalance_np = adverse_imbalance.fillna(False).to_numpy(dtype=bool)
+    adverse_distance_np = adverse_distance.fillna(False).to_numpy(dtype=bool)
+    vote_count = (
+        adverse_side_np.astype(np.int8)
+        + adverse_imbalance_np.astype(np.int8)
+        + adverse_distance_np.astype(np.int8)
+    )
+
     return {
         'all':np.ones(len(df),dtype=bool),
-        'adverse_nearest_side':adverse_side.to_numpy(),
-        'adverse_imbalance':adverse_imbalance.to_numpy(),
-        'adverse_distance_edge':adverse_distance.to_numpy(),
-        'two_of_three':((adverse_side.astype(int)+adverse_imbalance.astype(int)+adverse_distance.astype(int))>=2).to_numpy(),
+        'adverse_nearest_side':adverse_side_np,
+        'adverse_imbalance':adverse_imbalance_np,
+        'adverse_distance_edge':adverse_distance_np,
+        'two_of_three':vote_count>=2,
     }
 
 
