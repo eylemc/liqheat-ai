@@ -1,7 +1,12 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "liqheat-radar-outcome-stability-v2";
+  const STORAGE_KEY = "liqheat-radar-outcome-stability-v3";
+
+  // Directional outcomes are only meaningful when the combined Radar Score
+  // reaches a minimum opportunity-quality threshold. Below this level the UI
+  // must honestly display UNCONFIRMED, regardless of raw topology direction.
+  const MIN_DIRECTIONAL_RADAR_SCORE = 60;
 
   // The backend refreshes roughly every 75 seconds while the UI polls every
   // 15 seconds. Confirmations therefore count only distinct backend snapshots,
@@ -30,6 +35,17 @@
     } catch (_) {
       // Radar rendering must not depend on storage availability.
     }
+  }
+
+  function radarScore(item) {
+    const direct = Number(item?.radar_score);
+    if (Number.isFinite(direct)) return direct;
+
+    const pressureScore = Number(item?.liquidity_pressure_score);
+    if (Number.isFinite(pressureScore)) return pressureScore;
+
+    const normalized = Number(item?.score);
+    return Number.isFinite(normalized) ? normalized * 100 : 0;
   }
 
   function directionalEvidence(item) {
@@ -82,9 +98,34 @@
 
   function stabilizeItem(item, state, payload) {
     const symbol = String(item?.symbol || "UNKNOWN").toUpperCase();
+    const score = radarScore(item);
     const evidence = directionalEvidence(item);
     const previous = normalizePrevious(state[symbol]);
     const currentSnapshotKey = snapshotKey(payload, item);
+
+    // Hard quality gate: a low Radar Score can describe weak directional bias,
+    // but it is not a tradeable directional call. Force UNCONFIRMED immediately
+    // and clear any pending direction so stale state cannot leak through.
+    if (score < MIN_DIRECTIONAL_RADAR_SCORE) {
+      const nextState = {
+        outcome: "NEUTRAL",
+        pending: null,
+        pendingConfirmations: 0,
+        weakConfirmations: 0,
+        changedAt:
+          previous.outcome !== "NEUTRAL"
+            ? new Date().toISOString()
+            : previous.changedAt,
+        lastSnapshotKey: currentSnapshotKey || previous.lastSnapshotKey,
+        confidence: Number(evidence.confidence.toFixed(6)),
+        upwardShare: Number(evidence.upwardShare.toFixed(6)),
+        radarScore: Number(score.toFixed(6)),
+        scoreGate: "BLOCK",
+      };
+
+      state[symbol] = nextState;
+      return applyOutcome(item, "NEUTRAL", nextState);
+    }
 
     // A 15-second browser poll may see the same 75-second backend snapshot
     // several times. Repeated reads must never advance the state machine.
@@ -93,6 +134,8 @@
         ...previous,
         confidence: evidence.confidence,
         upwardShare: evidence.upwardShare,
+        radarScore: score,
+        scoreGate: "PASS",
       });
     }
 
@@ -167,6 +210,8 @@
       lastSnapshotKey: currentSnapshotKey || previous.lastSnapshotKey,
       confidence: Number(evidence.confidence.toFixed(6)),
       upwardShare: Number(evidence.upwardShare.toFixed(6)),
+      radarScore: Number(score.toFixed(6)),
+      scoreGate: "PASS",
     };
 
     state[symbol] = nextState;
@@ -178,9 +223,12 @@
       ...item,
       expected_outcome: outcome,
       outcome_stability: {
-        mode: "snapshot-aware-state-machine-v2",
+        mode: "score-gated-snapshot-state-machine-v3",
         confidence: Number(Number(state.confidence || 0).toFixed(6)),
         upward_share: Number(Number(state.upwardShare ?? 0.5).toFixed(6)),
+        radar_score: Number(Number(state.radarScore || 0).toFixed(6)),
+        score_gate: state.scoreGate || "BLOCK",
+        minimum_directional_radar_score: MIN_DIRECTIONAL_RADAR_SCORE,
         pending_direction: state.pending || null,
         pending_confirmations: Number(state.pendingConfirmations || 0),
         weak_confirmations: Number(state.weakConfirmations || 0),
@@ -218,7 +266,8 @@
     return {
       ...payload,
       outcome_stability: {
-        mode: "snapshot-aware-state-machine-v2",
+        mode: "score-gated-snapshot-state-machine-v3",
+        minimum_directional_radar_score: MIN_DIRECTIONAL_RADAR_SCORE,
         enter_confidence: ENTER_CONFIDENCE,
         exit_confidence: EXIT_CONFIDENCE,
         reverse_confidence: REVERSE_CONFIDENCE,
