@@ -1,0 +1,303 @@
+{
+  "audit_name": "adversarial_reviewer",
+  "executive_summary": "The supplied evidence does not support the premise that weak economic performance is mainly a CatBoost modeling problem. For the 1h direction target, topology features underperform a simple calendar/symbol baseline on test, while CatBoost plus all features is only marginally above calendar-only in one report and below calendar-only in the ablation. Trading backtests show that high event/direction metrics do not translate into positive net execution after the stated 14 bps round-trip cost; the reported best full-stream and squeeze-signal configurations are negative or approximately flat, making no-trade a valid baseline that is not treated as the primary comparator. The more promising strong-contrarian target shows ranking lift and walk-forward AUC, but absolute precision remains low and economic robustness is unknown from the supplied output files. The main adversarial conclusion is that target definition, stationarity, effective sample size, and selection bias are the first-order risks; model choice is secondary until these are falsified.",
+  "findings": [
+    {
+      "id": "AR-001",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "The 1h direction target appears weak for topology features, not just for CatBoost",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_ablation_1h/ablation_metrics.json",
+          "detail": "On test, calendar_only balanced_accuracy is 0.450118, topology_only is 0.403844, and combined is 0.440963; combined_gain_vs_calendar is -0.009155."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "CatBoost test balanced_accuracy is 0.452335, only modestly above the calendar_only ablation value and far above topology_only."
+        }
+      ],
+      "why_it_matters": "If calendar/symbol effects explain most of the measurable signal and topology-only is worse than calendar, improving CatBoost hyperparameters is unlikely to solve the core research problem. The target may be noisy, non-causal, or regime-dependent.",
+      "verification_test": "Train a locked model family set on identical chronological splits: calendar_only, symbol_only, topology_only, topology_without_symbol, calendar_plus_symbol, and full. Use blocked bootstrap over time buckets to estimate confidence intervals for balanced_accuracy and log_loss differences.",
+      "recommended_change": "Treat calendar_only and symbol_only as mandatory primary baselines for every target. Do not advance topology claims unless topology features add statistically and economically meaningful incremental value over those baselines.",
+      "success_metric": "Topology feature block improves out-of-sample balanced_accuracy by at least +0.02 over calendar_plus_symbol with a 95% blocked-bootstrap confidence interval excluding 0, and improves log_loss, not only accuracy.",
+      "risk": "The pipeline may be learning time-of-week and instrument priors rather than liquidation topology."
+    },
+    {
+      "id": "AR-002",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Feature importance is dominated by symbol and calendar variables",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_catboost_1h/feature_importance.csv",
+          "detail": "Top features are symbol, dow_sin, hour_sin, hour_cos, is_weekend_utc, and dow_cos; topology-specific features have lower importances."
+        },
+        {
+          "file": "data/models/topology_v2_ablation_1h/combined_feature_importance.csv",
+          "detail": "In the combined ablation, symbol and calendar features dominate; many topology fields have 0.0 importance."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/fold_1_feature_importance.csv",
+          "detail": "Walk-forward strong-contrarian fold_1 also ranks hour_sin, symbol, dow_sin, hour_cos, and is_weekend_utc among the top features."
+        }
+      ],
+      "why_it_matters": "A topology thesis requires evidence that liquidity topology contributes information beyond static instrument and calendar effects. Dominant calendar/symbol importances create confounding and reduce interpretability.",
+      "verification_test": "Run permutation importance and grouped SHAP/drop-column tests where symbol and calendar blocks are removed or randomized within time blocks. Repeat by symbol and timeframe.",
+      "recommended_change": "Report incremental topology contribution separately from symbol/calendar contribution. Include a topology_without_symbol variant to test whether the model generalizes structural effects rather than memorizing instrument-specific behavior.",
+      "success_metric": "After removing symbol and calendar features, topology-only or topology-plus-market-state retains at least 80% of the full model's target-specific lift over majority/no-skill baseline on blocked OOS folds.",
+      "risk": "Deployment may fail when symbol mix, trading hours, or market calendar regime changes."
+    },
+    {
+      "id": "AR-003",
+      "classification": "INFERRED",
+      "severity": "high",
+      "title": "Non-stationarity is a more plausible explanation than underfit model choice",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_ablation_1h/ablation_metrics.json",
+          "detail": "topology_only validation balanced_accuracy is 0.420017 but test balanced_accuracy falls to 0.403844; calendar_only validation is 0.407300 but test rises to 0.450118."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_summary.csv",
+          "detail": "Strong-contrarian test_base_rate changes materially across folds: 0.102016, 0.090364, and 0.05796."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_summary.csv",
+          "detail": "Strong-contrarian test_pr_auc changes from 0.188318 to 0.172704 to 0.127030 across folds."
+        }
+      ],
+      "why_it_matters": "A model can look adequate under one class base rate and fail under another. If target prevalence and conditional relationships move, thresholding and trade frequency become unstable.",
+      "verification_test": "Compute rolling monthly/weekly base rates, calibration curves, AUC/PR-AUC, event precision, and net bps by volatility/trend/liquidity regimes. Apply population stability index or Jensen-Shannon divergence to feature distributions by fold.",
+      "recommended_change": "Make regime-stability a gate before model selection. Use expanding walk-forward evaluation with fixed pre-registered thresholds and report worst-regime metrics.",
+      "success_metric": "Across all pre-defined regimes, target base-rate-adjusted lift remains above 1.5 for top 5% predictions, calibration ECE is below 0.05, and no regime has negative incremental value versus the baseline comparator.",
+      "risk": "A strategy selected in one period may be a regime artifact rather than a persistent topology signal."
+    },
+    {
+      "id": "AR-004",
+      "classification": "OBSERVED",
+      "severity": "critical",
+      "title": "Reported best trading configurations do not beat no-trade on net bps",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Best configuration has 72 trades, mean_net_bps -3.333309, total_net_bps -239.998276, profit_factor 0.792415, and compounded_return -0.002402."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Best configuration by research_score has 68 trades, mean_net_bps -0.049520, total_net_bps -3.367362, profit_factor 0.995597, and compounded_return -0.00003566."
+        }
+      ],
+      "why_it_matters": "When the best selected configuration is negative after stated costs, no-trade is not merely a fallback; it is the economically correct baseline in the supplied reports.",
+      "verification_test": "Add explicit no-trade rows to every backtest summary with zero trades and zero net bps. Rank strategies by net economic metrics after costs, not by research_score alone.",
+      "recommended_change": "Require any promoted configuration to beat no-trade and simple passive baselines after costs on every fold or on a pre-specified acceptable fold criterion.",
+      "success_metric": "Selected configuration has positive total_net_bps, profit_factor greater than 1.10, positive mean_net_bps in at least 3 of 3 folds, and minimum_fold_profit_factor greater than 1.0 after costs.",
+      "risk": "The pipeline may optimize alert/event detection while still generating negative executable trades."
+    },
+    {
+      "id": "AR-005",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "High event/direction metrics do not translate into trade profitability",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Best configuration reports event_precision 0.694444 and direction_accuracy 0.92, yet mean_net_bps is -3.333309 and stop_hit_rate is 0.791667."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Best configuration reports event_rate 1.0 and event_direction_accuracy 0.985294, yet mean_net_bps is -0.049520 and stop_hit_rate is 0.617647."
+        }
+      ],
+      "why_it_matters": "Event detection is not equivalent to tradability. Timing, entry price, stop/target geometry, costs, and adverse excursion can erase event-label accuracy.",
+      "verification_test": "For each alert, decompose PnL into event hit, direction correctness, entry delay, MFE, MAE, stop distance, target distance, and cost. Compare PnL conditional on event_detected=true versus false.",
+      "recommended_change": "Promote execution-aligned targets and metrics. Evaluate labels only if their alert cohort has positive expectancy under pre-registered execution rules.",
+      "success_metric": "Among event_detected=true alerts, median net bps exceeds 0 after 14 bps cost, stop_hit_rate is below 50%, and event_direction_correct=true trades have statistically higher net bps than incorrect/no-event trades.",
+      "risk": "The model may correctly forecast liquidation events that are already priced or not capturable under available execution assumptions."
+    },
+    {
+      "id": "AR-006",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Massive configuration sweeps create material selection-bias risk",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Grid includes 48 alert configurations, 162 execution configurations, and 7776 total backtests."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Grid includes 48 signal configurations, 162 execution configurations, and 7776 total backtests."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Top_20 includes a configuration with positive mean_net_bps 2.399044 and profit_factor 1.123073 but only positive_folds 1 of 3 and minimum_fold_mean_bps -16.500647."
+        }
+      ],
+      "why_it_matters": "With thousands of configurations and only a few folds, apparent winners can be noise. The supplied best configurations also show repeated identical metrics across parameter variants, reducing evidence that hyperparameters are meaningfully robust.",
+      "verification_test": "Use nested walk-forward: inner folds select thresholds/execution, outer untouched folds evaluate once. Apply White's Reality Check, stationary bootstrap, or a permutation test over strategy labels.",
+      "recommended_change": "Freeze a small set of strategy rules before final evaluation. Report all tried configurations and an adjusted p-value or false discovery estimate for the chosen one.",
+      "success_metric": "The pre-registered selected rule remains positive after costs on an untouched outer test period, with bootstrap p-value below 0.05 after multiple-testing adjustment.",
+      "risk": "Backtest selection may be overfit to the observed OOS folds despite chronological methodology."
+    },
+    {
+      "id": "AR-007",
+      "classification": "INFERRED",
+      "severity": "medium",
+      "title": "Effective sample size is likely much smaller than row counts imply",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_baseline_1h/metrics.json",
+          "detail": "The labeled dataset has 2,554,739 valid rows with sampled train/validation/test rows of 800,000/300,000/300,000."
+        },
+        {
+          "file": "scripts/build_topology_v2_labels.py",
+          "detail": "Forward labels are built for every row using 15m, 1h, and 4h horizons from dense chronological snapshots."
+        },
+        {
+          "file": "scripts/analyze_matrix_alignment.py",
+          "detail": "This separate analysis explicitly uses non-overlapping horizon buckets for t-statistics, implying overlap control is recognized elsewhere."
+        }
+      ],
+      "why_it_matters": "Dense time-series rows with overlapping forward windows are autocorrelated. Nominal 300,000-row test metrics may overstate statistical confidence if independent information is much lower.",
+      "verification_test": "Estimate effective sample size by autocorrelation of labels, predictions, and returns within symbol/timeframe. Recompute metrics using non-overlapping 1h buckets and cluster-robust confidence intervals by day and symbol.",
+      "recommended_change": "Report both nominal rows and effective independent observations for every ML and trading metric. Use block bootstrap rather than IID standard errors.",
+      "success_metric": "Key improvements remain significant using non-overlapping samples and day-cluster bootstrap, with confidence intervals still excluding the baseline.",
+      "risk": "Reported small metric differences may not be statistically distinguishable from noise."
+    },
+    {
+      "id": "AR-008",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "The real baseline for contrarian sweep prediction may be simple distance, not full topology ML",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_contrarian_sweep_1h/metrics.json",
+          "detail": "For farther liquidity side swept first within 1 hour, distance_only test balanced_accuracy is 0.590745 and ROC_AUC is 0.626997; full_combined test balanced_accuracy is 0.596147 and ROC_AUC is 0.633413."
+        },
+        {
+          "file": "data/models/topology_v2_contrarian_sweep_1h/metrics.json",
+          "detail": "The full_combined gain over distance_only is only 0.005402 balanced_accuracy."
+        }
+      ],
+      "why_it_matters": "If a simple distance-only rule captures nearly all predictability, the ML topology stack may add complexity without meaningful incremental edge.",
+      "verification_test": "Benchmark against deterministic rules: nearer distance, distance_advantage threshold, nearest_side, and calendar-free distance-only logistic/tree baselines. Use identical walk-forward splits and economic execution.",
+      "recommended_change": "Promote the simplest rule that matches full model performance within an equivalence margin, unless the full model demonstrably improves economic results.",
+      "success_metric": "Full model exceeds distance-only by at least +0.02 balanced_accuracy or +0.03 ROC_AUC and improves pre-registered net bps after costs on every outer fold.",
+      "risk": "The project may over-engineer a mostly geometric target."
+    },
+    {
+      "id": "AR-009",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Selective prediction improves lift but absolute precision remains low for strong contrarian events",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/metrics.json",
+          "detail": "Full_combined test ROC_AUC is 0.718744 and PR_AUC is 0.128034; validation-selected threshold test precision is 0.139087 and recall is 0.388627."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/metrics.json",
+          "detail": "Full_combined top 1% test event_rate is 0.194667 versus base_rate 0.058093, lift 3.350930."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_summary.csv",
+          "detail": "Walk-forward top_1pct_event_rate declines from 0.2716 to 0.2568 to 0.1912 across folds while test_base_rate also changes."
+        }
+      ],
+      "why_it_matters": "Ranking lift is encouraging, but a top 1% event rate below 20% in the later static test and declining fold event rates may still be insufficient after costs and false positives.",
+      "verification_test": "Convert top-fraction predictions into pre-registered executable trades using only information available at signal time, then report net bps, trigger rate, precision, and drawdown by fold.",
+      "recommended_change": "Use selective prediction only with explicit abstention/no-trade policy and capacity limits. Optimize for calibrated expected value, not event probability alone.",
+      "success_metric": "Top 1% and top 5% cohorts maintain lift above 2.0 in every fold and produce positive net bps after 14 bps cost under the same execution assumptions.",
+      "risk": "A high-AUC ranking model may still be non-tradable because positive event probability is too low."
+    },
+    {
+      "id": "AR-010",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Economic validation for the promising strong-contrarian model is not evidenced in supplied result files",
+      "evidence": [
+        {
+          "file": "scripts/backtest_topology_v2_strong_contrarian_25bp.py",
+          "detail": "A script exists to backtest strong-contrarian 25bp with TP 25 bps, stops 10/15/25 bps, 15-minute post-entry window, 15-minute signal cooldown, and 14 bps round-trip cost."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_summary.csv",
+          "detail": "Supplied walk-forward files report classification/ranking metrics, not executed net bps or profit factor."
+        }
+      ],
+      "why_it_matters": "The strongest modeling evidence is for a target whose economic backtest output is not supplied. Without executed trade metrics, the research cannot conclude that the target is actionable.",
+      "verification_test": "Run or supply the strong-contrarian economic backtest outputs and reconcile signal counts, trigger rates, trades, net_bps, win_rate, profit_factor, and fold consistency with the walk-forward predictions.",
+      "recommended_change": "Do not prioritize strong-contrarian deployment or claims until classification lift is tied to reproducible post-cost trade outcomes.",
+      "success_metric": "For each signal_fraction and stop_bps setting, aggregate and per-fold reports show positive mean_net_bps, profit_factor above 1.10, and no fold with catastrophic drawdown under the stated cost model.",
+      "risk": "The apparently best target may be only a label-ranking success, not an executable strategy."
+    },
+    {
+      "id": "AR-011",
+      "classification": "INFERRED",
+      "severity": "medium",
+      "title": "Robustness across market regimes is under-specified",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_group_metrics.csv",
+          "detail": "Group metrics are reported by symbol, timeframe, and symbol_timeframe, but not by volatility, trend, funding/liquidity, or market-stress regimes."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Best configuration reports only 3 folds, with positive_folds 2 and minimum_fold_mean_bps -10.956376."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Best configuration reports only 3 folds, with positive_folds 2 and minimum_fold_mean_bps -5.324216."
+        }
+      ],
+      "why_it_matters": "Liquidation topology is plausibly regime-specific. Three folds and symbol/timeframe grouping are not enough to verify robustness across volatility, trend, and liquidity regimes.",
+      "verification_test": "Partition OOS data into pre-registered regimes using realized volatility, matrix trend alignment, market direction, spread/slippage proxy if available, and event intensity. Evaluate classification and net execution metrics per regime.",
+      "recommended_change": "Add regime tags to all prediction and trade outputs. Require worst-regime reporting and do not average away failure modes.",
+      "success_metric": "No pre-defined regime has negative post-cost expectancy for the selected strategy, or the policy explicitly abstains in regimes where validation proves no edge.",
+      "risk": "Aggregate metrics may hide that the signal works only in a narrow historical state."
+    },
+    {
+      "id": "AR-012",
+      "classification": "HYPOTHESIS",
+      "severity": "medium",
+      "title": "The endpoint 1h direction label may be misaligned with liquidation-topology economics",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_labels.py",
+          "detail": "direction_1h is generated from forward_return_1h using a neutral threshold of 0.0010, i.e. endpoint return after approximately 1 hour."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "CatBoost test balanced_accuracy on direction_1h is 0.452335 with macro_f1 0.451800."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/metrics.json",
+          "detail": "A different event-style target, strong_contrarian_25bp_1h, shows materially higher ranking metrics: full_combined test ROC_AUC 0.718744."
+        }
+      ],
+      "why_it_matters": "Liquidation topology may predict path events, sweeps, and excursions better than endpoint returns. Weak 1h direction performance may reflect an ill-posed target rather than model failure.",
+      "verification_test": "Compare endpoint direction, first-hit sweep, excursion, and execution-aligned labels on the same walk-forward splits. Evaluate both classification metrics and post-cost simulated execution.",
+      "recommended_change": "Stop using endpoint direction as the flagship target unless it demonstrates incremental economic value. Prefer path/event targets only if they survive execution-aligned validation.",
+      "success_metric": "Chosen target beats endpoint direction by at least +0.05 ROC_AUC or +0.03 balanced_accuracy and produces positive post-cost net bps under pre-registered execution rules.",
+      "risk": "The project may optimize an easy-to-label but economically irrelevant target."
+    }
+  ],
+  "missing_evidence": [
+    "Exact prediction parquet samples and schemas for the squeeze and strong-contrarian models are not supplied, so row-level calibration, leakage checks, and timestamp alignment cannot be independently verified.",
+    "Economic backtest output files for data/backtests/topology_v2_strong_contrarian_25bp are not supplied; only the backtest script is present.",
+    "No untouched final holdout after the 7776-configuration sweeps is supplied.",
+    "No confidence intervals, p-values, block-bootstrap results, or effective sample size estimates are supplied for the reported ML or trading metrics.",
+    "No explicit no-trade baseline row is included in the backtest reports.",
+    "No simple deterministic liquidity-distance trading baseline is supplied for direct economic comparison.",
+    "No empirical validation of the 14 bps round-trip cost assumption is supplied.",
+    "No regime labels or regime-stratified economic backtest tables are supplied.",
+    "No reproducibility manifest tying each report.json to the exact script version, command, input hashes, and model artifacts is supplied.",
+    "No live-paper or forward-only post-research evaluation period is supplied."
+  ],
+  "top_3_next_actions": [
+    "Run a pre-registered nested walk-forward evaluation with no-trade, calendar/symbol, distance-only, and topology baselines; select thresholds only inside inner folds and evaluate once on untouched outer folds.",
+    "Replace headline endpoint-direction claims with target-comparison evidence: endpoint direction versus sweep, strong-contrarian, and execution-aligned labels, all judged by post-cost economic metrics and blocked confidence intervals.",
+    "Add regime and effective-sample-size reporting to every ML and backtest output, including non-overlapping bucket metrics, day/symbol clustered bootstrap intervals, and worst-regime net bps."
+  ]
+}

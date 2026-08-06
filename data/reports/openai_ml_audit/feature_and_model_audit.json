@@ -1,0 +1,311 @@
+{
+  "audit_name": "feature_and_model_audit",
+  "executive_summary": "The supplied evidence shows that the current 1h direction CatBoost topology model is not yet feature-led: calendar and symbol features dominate, topology-only underperforms calendar-only on the held-out test split, and the combined ablation stops at iteration 1 with most topology features at zero importance. In contrast, contrarian-sweep and strong-contrarian targets show materially stronger classification lift, especially in top-fraction ranking, but the economic backtests shown for squeeze configurations are negative or approximately breakeven after 14 bps round-trip costs. The main audit priority is not hyperparameter search; it is target/feature/execution alignment: add measurable temporal liquidity-state features, volatility/distance normalization, calibration diagnostics, regime and multi-timeframe alignment tests, redundancy controls, and oracle-safe execution simulation before expanding model tuning.",
+  "findings": [
+    {
+      "id": "F001_direction_model_calendar_dominance",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "The 1h direction model is dominated by symbol/calendar effects, not topology structure",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_ablation_1h/ablation_metrics.json",
+          "detail": "calendar_only test balanced_accuracy is 0.4501181944262669; topology_only test balanced_accuracy is 0.4038438389491346; combined test balanced_accuracy is 0.44096298934188555, which is -0.009155205084381335 versus calendar."
+        },
+        {
+          "file": "data/models/topology_v2_ablation_1h/combined_feature_importance.csv",
+          "detail": "Combined feature importance is concentrated in symbol, dow_sin, is_weekend_utc, hour_sin, hour_cos, log1p_lower_total_volume, log1p_upper_total_volume and dow_cos; most topology distance/imbalance features have 0.0 importance."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/feature_importance.csv",
+          "detail": "Top importances are symbol 18.70710816205948, dow_sin 15.002730445298544, hour_sin 13.161441014086973, hour_cos 12.352510744791122, is_weekend_utc 12.133750864352123 and dow_cos 6.9221956026186."
+        }
+      ],
+      "why_it_matters": "If topology features do not add out-of-sample lift beyond calendar and symbol, the model may be learning asset/session priors rather than actionable liquidity topology.",
+      "verification_test": "Run a walk-forward ablation with identical folds for: calendar_only, symbol_only, topology_static_only, topology_dynamic_only, topology_plus_calendar, and full. Include permutation importance by fold and group results by symbol/timeframe.",
+      "recommended_change": "Do not start broad hyperparameter search yet. First redesign topology features and require topology-added lift over calendar/symbol baselines under walk-forward validation.",
+      "success_metric": "Across at least 3 chronological folds, topology_plus_calendar improves test balanced_accuracy or ROC/PR metric by at least 0.02 absolute versus calendar_plus_symbol, and at least 70% of folds show non-negative topology-added lift.",
+      "risk": "Calendar effects can be regime-specific and may decay; deploying a calendar-dominated liquidity model risks poor generalization."
+    },
+    {
+      "id": "F002_combined_ablation_early_stop_and_zero_topology",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Combined 1h direction ablation stops at iteration 1 and suppresses most topology features",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_ablation_1h/ablation_metrics.json",
+          "detail": "combined best_iteration is 1, validation log_loss is 1.090541819034665 and test log_loss is 1.0891496553612698."
+        },
+        {
+          "file": "data/models/topology_v2_ablation_1h/combined_feature_importance.csv",
+          "detail": "Features including nearest_side, has_lower_level, has_topology, nearest_side_code, upper_distance_pct, lower_distance_pct, distance_advantage, signed_distance_edge, active_level_difference, active_level_total, topology_imbalance and many volume-ratio fields have 0.0 importance."
+        }
+      ],
+      "why_it_matters": "A model stopping after one boosting iteration is usually not a reliable representation of feature value. It can hide useful interactions or indicate loss/validation mismatch, excessive regularization, noisy target, class weighting instability, or a weak split design.",
+      "verification_test": "Repeat the combined ablation with fixed CatBoost parameters but multiple eval metrics: MultiClass log_loss, TotalF1 macro, balanced accuracy evaluated externally, and no early stopping for a diagnostic run. Compare learning curves and feature importances across folds.",
+      "recommended_change": "Before tuning depth/learning rate, audit early stopping and objective/metric alignment. Use external fold metrics for model selection instead of relying only on a single validation best_iteration.",
+      "success_metric": "Learning curves should show stable validation improvement beyond trivial iteration counts, and non-calendar feature importances should be stable across folds with rank correlation greater than 0.5 for the top 15 features.",
+      "risk": "Current feature conclusions may be false negatives if early stopping selected an underfit model."
+    },
+    {
+      "id": "F003_static_topology_missing_velocity_persistence_replenishment",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Core topology CatBoost feature sets are mostly static snapshots and lack explicit liquidity velocity, persistence, replenishment and post-sweep-state features",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_baseline_1h/features.json",
+          "detail": "Baseline features include distances, volume aggregates, active level counts, ratios and calendar fields, but no explicit age, velocity, persistence, replenishment, prior-sweep or post-sweep-state columns are listed."
+        },
+        {
+          "file": "scripts/backtest_topology_v2_squeeze_full_stream.py",
+          "detail": "MODEL_FEATURES include current_price, upper/lower distances, pool/total volumes, active levels, ratios and calendar features, but no explicit temporal cluster velocity, liquidity age, replenishment after hit, or persistence duration features are listed."
+        },
+        {
+          "file": "scripts/build_forecast_v1_dataset.py",
+          "detail": "A separate forecast_v1 dataset builder creates lagged deltas/change ratios and multi-timeframe features, showing temporal feature engineering exists elsewhere, but these are not evidenced in the baseline 1h CatBoost feature lists."
+        }
+      ],
+      "why_it_matters": "Market microstructure topology is path-dependent. Static nearest-level distance and volume can miss whether a liquidity cluster is building, decaying, replenishing after sweeps, or repeatedly rejected.",
+      "verification_test": "Add features per symbol/timeframe using only prior snapshots: level_age_minutes, nearest_side_stability_minutes, distance_velocity over 5/15/30/60m, pool_volume_velocity, active_level_velocity, replenishment_ratio_after_sweep, prior_sweep_count_1h/4h, post_sweep_elapsed_minutes, and cluster_persistence_score. Run feature ablations against the current static set.",
+      "recommended_change": "Promote temporal topology features from research datasets into the main CatBoost training pipeline, with strict backward-only computation and embargo-aware validation.",
+      "success_metric": "Dynamic topology feature block improves target-specific validation: for direction_1h, at least +0.02 balanced_accuracy over static topology; for strong_contrarian_25bp, at least +0.02 PR-AUC or +10% relative top_5pct lift over the current full_combined model.",
+      "risk": "Poorly implemented temporal features can leak future state if not computed with groupwise backward windows only."
+    },
+    {
+      "id": "F004_distance_and_volume_not_volatility_normalized",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "The observed core features use raw percent distances and log volumes but no explicit volatility-normalized distance or liquidity-normalized volume",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_baseline_1h/features.json",
+          "detail": "Numeric features include upper_distance_pct, lower_distance_pct, distance_advantage, signed_distance_edge, log1p distance features and log1p volume features, but no ATR, realized volatility, spread, or rolling volume normalization fields are listed."
+        },
+        {
+          "file": "scripts/build_topology_v2_ml_features.py",
+          "detail": "Feature generation creates log1p transforms, active level counts, volume imbalance, signed_distance_edge and calendar encodings. It does not show ATR, realized volatility, rolling dollar-volume normalization, or distance-in-volatility-units."
+        }
+      ],
+      "why_it_matters": "A 25 bps level has different meaning in low-volatility versus high-volatility regimes. Raw pool volume also has different meaning by symbol and session.",
+      "verification_test": "Create backward-only normalized features: upper_distance_to_realized_vol_15m/60m, lower_distance_to_realized_vol, distance_to_ATR, pool_volume_to_rolling_symbol_median, total_volume_zscore_by_symbol_timeframe, and liquidity_pressure_per_volatility. Compare against raw/log-only features.",
+      "recommended_change": "Normalize distances and liquidity by recent realized volatility and symbol/timeframe-specific rolling liquidity baselines before additional CatBoost tuning.",
+      "success_metric": "Normalized feature block should reduce symbol importance dependence and improve out-of-sample ranking: at least +0.01 ROC-AUC or +0.02 PR-AUC on contrarian targets, or at least +0.02 balanced_accuracy on direction/sweep classification.",
+      "risk": "Rolling normalizers can introduce lookahead if windows are centered or fit using validation/test rows."
+    },
+    {
+      "id": "F005_redundant_raw_log_ratio_features",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Feature lists contain many raw/log duplicate and algebraically related features",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_ml_features.py",
+          "detail": "LOG1P_COLUMNS include current_price, distances, distance_advantage, pool volumes, ratios, active levels and total volumes, creating both raw and log1p variants."
+        },
+        {
+          "file": "data/models/topology_v2_contrarian_sweep_1h/full_combined_feature_importance.csv",
+          "detail": "Both distance_advantage and log1p_distance_advantage are highly important; both pool_volume_ratio and log1p_pool_volume_ratio appear; both distance_pressure_ratio and log1p_distance_pressure_ratio appear."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/full_combined_feature_importance.csv",
+          "detail": "Raw and log variants coexist for distances, total volumes, active levels, pool volumes and ratios."
+        }
+      ],
+      "why_it_matters": "CatBoost can handle correlated features, but excessive redundant variants can make importances unstable, increase search space, and hide which economic quantity matters.",
+      "verification_test": "Run foldwise feature clustering by Spearman correlation and SHAP/permutation importance. Compare full features against a de-duplicated set that keeps either raw, log, z-scored, or normalized versions per feature family.",
+      "recommended_change": "Use a feature-family registry: choose canonical raw/log/normalized variants per block, then allow CatBoost interactions rather than feeding all related transforms blindly.",
+      "success_metric": "A reduced feature set within 70% of current feature count should preserve at least 99% of validation ROC-AUC/PR-AUC or balanced_accuracy while improving fold-to-fold importance stability.",
+      "risk": "Over-pruning can remove useful nonlinear threshold information; changes must be validated by ablation rather than by correlation alone."
+    },
+    {
+      "id": "F006_global_model_symbol_dependency",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Global models rely heavily on symbol categorical features; per-symbol versus global performance is not fully resolved in supplied model reports",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_ablation_1h/topology_only_feature_importance.csv",
+          "detail": "symbol importance is 28.734358107927594 in topology_only."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_group_metrics.csv",
+          "detail": "Group metrics vary by symbol and fold. For example, fold_3 base_rate ranges from 0.01439292690449265 for XAUUSDT to 0.07380033396293559 for ETHUSDT, and ROC-AUC varies by symbol."
+        },
+        {
+          "file": "scripts/diagnose_topology_v2_baseline_1h.py",
+          "detail": "A diagnostics script exists for group performance by symbol, timeframe and symbol_timeframe, but the corresponding output CSV files are not supplied."
+        }
+      ],
+      "why_it_matters": "A single global model can learn symbol priors instead of invariant topology behavior. Conversely, per-symbol models can overfit if sample sizes are small. The supplied evidence does not settle this tradeoff.",
+      "verification_test": "Train and evaluate: global_with_symbol, global_without_symbol, per_symbol, per_symbol_timeframe, and hierarchical/global-plus-symbol-calibrated variants using identical walk-forward folds.",
+      "recommended_change": "Keep a global model only if it beats per-symbol and no-symbol baselines on both average and worst-group metrics. Otherwise use symbol-specific calibration or specialist heads.",
+      "success_metric": "Selected architecture should improve macro average group metric while not reducing worst-symbol ROC-AUC/PR-AUC or balanced_accuracy by more than 0.01 versus the best specialist baseline.",
+      "risk": "Removing symbol too early may degrade real signal; keeping it without controls may overstate generalization."
+    },
+    {
+      "id": "F007_probability_thresholding_without_calibration_evidence",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Backtests use CatBoost probabilities for thresholding, but calibration evidence is missing",
+      "evidence": [
+        {
+          "file": "scripts/backtest_topology_v2_squeeze_full_stream.py",
+          "detail": "Alerts are selected from validation full-stream squeeze_probability percentiles and filtered by direction_confidence."
+        },
+        {
+          "file": "scripts/backtest_topology_v2_squeeze_signal.py",
+          "detail": "Signals are generated using absolute squeeze_probability thresholds and direction_confidence thresholds."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "Log_loss is reported for validation and test, but no Brier score, expected calibration error, reliability curve, or probability calibration method is reported."
+        }
+      ],
+      "why_it_matters": "Percentile and confidence thresholds depend on ranking and calibration stability. Uncalibrated probabilities can shift across folds, symbols and regimes, causing unstable alert rates.",
+      "verification_test": "For each fold and symbol, compute reliability curves, ECE/MCE, Brier score, probability quantile stability and threshold transfer from validation to test. Compare raw CatBoost probabilities with temperature scaling, isotonic calibration and Platt calibration fitted on validation only.",
+      "recommended_change": "Add a calibration layer and report calibrated versus raw performance before selecting alert thresholds.",
+      "success_metric": "Calibration should reduce ECE by at least 30% without reducing ROC-AUC/PR-AUC by more than 0.005, and validation-selected alert percentiles should produce test alert counts within ±25% of expected counts per fold.",
+      "risk": "Over-calibration on small validation windows can reduce ranking quality; calibration methods must be fold-local and time-safe."
+    },
+    {
+      "id": "F008_target_alignment_contrarian_targets_outperform_direction_target",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Execution-aligned contrarian targets show stronger predictive structure than generic 1h direction labels",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "Generic direction_1h CatBoost test balanced_accuracy is 0.45233489465979143 and test macro_f1 is 0.4517995120639236."
+        },
+        {
+          "file": "data/models/topology_v2_contrarian_sweep_1h/metrics.json",
+          "detail": "full_combined contrarian-sweep test ROC-AUC is 0.6334127393936885 and balanced_accuracy is 0.5961466080942465."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/metrics.json",
+          "detail": "full_combined strong_contrarian_25bp test ROC-AUC is 0.7187444457133587, PR-AUC is 0.1280341788404858, and top_5pct lift is 3.020426899242598."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_summary.csv",
+          "detail": "Walk-forward test ROC-AUC values are 0.6917950579855128, 0.6973569034001634 and 0.7196391207030284 across folds."
+        }
+      ],
+      "why_it_matters": "The topology problem appears better framed as event/sweep/continuation ranking than generic future direction classification. Loss and target structure should match the intended trade trigger and payoff asymmetry.",
+      "verification_test": "Compare targets under identical folds and feature sets: direction_1h, sweep_first_side_1h, farther_side_swept_first, strong_contrarian_10bp, strong_contrarian_25bp, and direct execution-outcome labels. Evaluate ranking, calibration and economic simulation separately.",
+      "recommended_change": "Prioritize execution-aligned binary/ranking objectives for sweep and continuation probability. Treat generic direction_1h as a diagnostic baseline, not the primary model objective.",
+      "success_metric": "Chosen target should maintain walk-forward test ROC-AUC above 0.68 or PR-AUC lift above 2x base rate in top 5% across all folds, and then pass an oracle-safe economic simulation after costs.",
+      "risk": "Better classification lift does not imply profitable execution; do not infer financial performance from AUC or lift alone."
+    },
+    {
+      "id": "F009_squeeze_backtests_do_not_show_positive_after_cost_edge",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Supplied squeeze backtests do not demonstrate robust positive net expectancy after costs",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Best configuration has 72 trades, mean_net_bps -3.3333093933307953, median_net_bps -15.004219142807239, profit_factor 0.79241506507768 and minimum_fold_mean_bps -10.956375532745634 with 14 bps round-trip cost."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Best-by-research-score configuration has 68 trades, mean_net_bps -0.0495200280758433 and profit_factor 0.9955974240039208; another top-20 configuration has mean_net_bps 2.3990438150017255 but only 1 positive fold out of 3 and minimum_fold_mean_bps -16.50064724682092."
+        }
+      ],
+      "why_it_matters": "Event precision and direction accuracy can be high while the execution rule still loses after costs because stops, adverse excursion, latency and target placement dominate.",
+      "verification_test": "Decompose each alert into pre-event lead, entry slippage, MFE/MAE before entry, stop/target distance distribution, and outcome by event_detected/event_direction_correct. Run paired comparison of no-trade, fixed target/stop, nearest-liquidity target/stop and volatility-scaled exits.",
+      "recommended_change": "Separate signal-quality optimization from execution optimization. Require net-after-cost validation before ranking configurations by research score.",
+      "success_metric": "For any candidate execution rule, require positive mean_net_bps in all walk-forward folds, minimum_fold_profit_factor above 1.0, and enough trades to estimate uncertainty; otherwise classify as research-only.",
+      "risk": "Small trade counts and broad grid search can overfit apparent positives; no financial performance should be promised."
+    },
+    {
+      "id": "F010_grid_dimensions_show_invariance",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Many grid configurations produce identical top metrics, suggesting inactive or non-binding hyperparameters",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Top configurations 3934 through 5394 have identical metrics across minimum_direction_confidence values 0.55 to 0.70 and minimum_target_distance_bps 0, 25 and 50."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Top configurations 2278, 2279, 2764, 2765, 3250, 3251, 3736 and 3737 have identical metrics despite different minimum_direction_confidence and minimum_target_distance_bps settings."
+        }
+      ],
+      "why_it_matters": "If grid dimensions are non-binding, the search overstates exploration and can hide which variables actually control behavior.",
+      "verification_test": "For each grid parameter, compute unique alert sets, unique trade sets, and metric deltas. Flag parameters where changing the parameter changes zero alerts or zero trades across most configurations.",
+      "recommended_change": "Prune inactive grid dimensions or widen parameter ranges only after confirming the implementation path is correct. Report parameter sensitivity, not just top configurations.",
+      "success_metric": "Every retained grid dimension should change alert count, trade count, or risk/return metrics in at least 20% of configurations, unless explicitly documented as a guardrail.",
+      "risk": "Continuing broad searches over inactive knobs increases multiple-testing risk without improving model understanding."
+    },
+    {
+      "id": "F011_execution_simulation_uses_sweep_label_columns",
+      "classification": "OBSERVED",
+      "severity": "critical",
+      "title": "Strong-contrarian economic backtest uses precomputed sweep label columns to determine whether and when a trade triggers",
+      "evidence": [
+        {
+          "file": "scripts/backtest_topology_v2_strong_contrarian_25bp.py",
+          "detail": "The backtest loads SWEEP_LABEL_PATH columns sweep_code_1h and first_hit_seconds_1h and passes them into simulate_candidate."
+        },
+        {
+          "file": "scripts/backtest_topology_v2_strong_contrarian_25bp.py",
+          "detail": "simulate_candidate returns None unless sweep_code_1h equals the required farther-side sweep code, and uses first_hit_seconds_1h to compute expected_hit_time_ns and entry_index."
+        },
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "sweep_code_1h and first_hit_seconds_1h are built by inspecting later prices inside the future horizon."
+        }
+      ],
+      "why_it_matters": "Even if this is intended to emulate a resting stop order that triggers only when the far level is swept, using future label columns in the simulator is a high-risk design. A bug or mismatch can convert future knowledge into execution filtering.",
+      "verification_test": "Reimplement the same backtest without sweep label columns: at signal time, place a conditional trigger at the far liquidity level, scan the subsequent observed price stream online, enter only when price crosses the trigger, cancel on near-side invalidation if applicable, and compare trade IDs, entry times and returns against the label-driven version.",
+      "recommended_change": "Remove sweep_code_1h and first_hit_seconds_1h from economic backtest decision paths. Use only price stream, known levels at signal time, and online trigger logic.",
+      "success_metric": "Oracle-free online simulation should match label-driven trigger timing within one snapshot for at least 99% of trades, or differences must be explained and the label-driven report retired.",
+      "risk": "If not corrected, economic results for this strategy may be materially optimistic or invalid."
+    },
+    {
+      "id": "F012_multi_timeframe_regime_features_exist_but_are_not_integrated_into_core_catboost_reports",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Regime and multi-timeframe matrix/topology alignment research exists, but integration into the audited core CatBoost models is not evidenced",
+      "evidence": [
+        {
+          "file": "scripts/build_matrix_features_v1.py",
+          "detail": "Matrix features are computed for 1h, 4h and 24h, merged into forecast_v3/matrix_topology_dataset.parquet, and include matrix_mtf_direction, matrix_mtf_agreement_strength and matrix_topology_direction_agreement."
+        },
+        {
+          "file": "scripts/analyze_matrix_alignment.py",
+          "detail": "The script builds cohorts such as MATRIX_FULL_ALIGNMENT, MATRIX_24H_4H_ALIGNMENT, TOPOLOGY_MATRIX_AGREEMENT and TOPOLOGY_MATRIX_CONFLICT."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "The CatBoost 1h feature list does not include matrix_* or multi-timeframe alignment columns."
+        }
+      ],
+      "why_it_matters": "Liquidity clusters behave differently under aligned trend regimes, mixed regimes and topology/matrix conflict. Without explicit regime conditioning, a global model can average incompatible behaviors.",
+      "verification_test": "Add matrix/topology alignment features to the same walk-forward CatBoost pipeline and run interaction ablations: topology only, matrix only, topology plus matrix, and topology-by-regime specialist models.",
+      "recommended_change": "Integrate regime features only after proving no lookahead in matrix_available_at ASOF joins. Evaluate models by regime cohort and symbol.",
+      "success_metric": "Regime-aware model improves top-fraction lift or PR-AUC by at least 10% relative on strong_contrarian_25bp, or improves worst-regime metric without reducing overall metric by more than 0.005.",
+      "risk": "Matrix features built from OHLCV candles must be available only after candle close; incorrect alignment could leak future candle information."
+    }
+  ],
+  "missing_evidence": [
+    "CatBoost hyperparameter search logs and exact training scripts for data/models/topology_v2_catboost_1h are not supplied.",
+    "Calibration reports such as ECE, Brier score, reliability curves and calibrated probability comparisons are not supplied.",
+    "The economic backtest report for data/backtests/topology_v2_strong_contrarian_25bp is not supplied; only the script is supplied.",
+    "Outputs from scripts/diagnose_topology_v2_baseline_1h.py group, probability and confidence reports are not supplied.",
+    "Feature schema for data/features/liq_topology_v2.parquet before build_topology_v2_ml_features.py is only partially inferable from required columns.",
+    "No explicit latency, spread, order book depth, market order flow, or funding/open-interest features are evidenced.",
+    "No SHAP values, permutation importances, foldwise feature stability reports, or feature correlation reports are supplied.",
+    "No per-symbol versus global model comparison report is supplied.",
+    "No production inference contract proving feature availability times for every feature is supplied.",
+    "No statistical confidence intervals or bootstrapped uncertainty estimates for backtest means are supplied."
+  ],
+  "top_3_next_actions": [
+    "Replace label-driven strong-contrarian execution simulation with oracle-free online trigger simulation using only known levels and future observed prices, then compare trade-level outputs.",
+    "Build a walk-forward feature-ablation suite that separates calendar/symbol, static topology, dynamic topology, volatility-normalized topology, matrix/regime, and combined feature blocks.",
+    "Add probability calibration and threshold-transfer diagnostics before further grid or hyperparameter search."
+  ]
+}

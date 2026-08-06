@@ -1,0 +1,319 @@
+{
+  "audit_name": "problem_and_label_audit",
+  "executive_summary": "The supplied files show several label and horizon issues that should be audited before hyperparameter work. The strongest observed issues are: direction_1h is a fixed endpoint-return label rather than a first-touch liquidity-sweep label; training rows are dense overlapping snapshots; calendar/symbol features dominate the 1h direction task; and high event/direction metrics in squeeze backtests do not translate into positive net bps under the reported assumptions. Sweep-label code does implement UPPER_FIRST, LOWER_FIRST, NONE, BOTH and INVALID logic, but downstream treatment of BOTH/INVALID and repeated timestamp independence need explicit measurement. Evidence for the original squeeze-event label builder is incomplete because scripts/research_topology_v2_squeeze_events.py is referenced but not supplied.",
+  "findings": [
+    {
+      "id": "F01_ENDPOINT_RETURN_LABEL_MISMATCH",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "direction_1h is an endpoint-return label, not a first-touch topology/liquidity label",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_labels.py",
+          "detail": "add_forward_labels computes future_price at target_time via merge_asof, forward_return = future_price/current_price - 1.0, and direction = 1/-1/0 using fixed neutral thresholds."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "The CatBoost target is direction_1h with classes -1, 0, 1."
+        },
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "A separate first-touch sweep label exists and inspects future prices in (logged_at, logged_at + horizon] against fixed upper/lower liquidity levels."
+        }
+      ],
+      "why_it_matters": "If the research problem is liquidation-topology or which liquidity side is swept first, endpoint return at 1h can conflict with first-touch path behavior. A row can hit upper first and still finish down after 1h, or hit neither level but have a non-neutral endpoint return.",
+      "verification_test": "Join liq_topology_v2_ml_labeled.parquet and liq_topology_v2_sweep_labels.parquet by id. For 1h valid rows, cross-tab direction_1h against sweep_code_1h and measure disagreement rates, e.g. P(direction_1h=1 | UPPER_FIRST), P(direction_1h=-1 | UPPER_FIRST), P(direction_1h=0 | UPPER_FIRST), and the same for LOWER_FIRST/NONE/BOTH.",
+      "recommended_change": "Treat endpoint direction and first-touch sweep as separate tasks. For topology-driven liquidation research, prioritize sweep-first or barrier outcome labels, then optionally add endpoint-return labels as secondary economic filters.",
+      "success_metric": "A documented label-alignment table with disagreement rates below a pre-set threshold, for example less than 20% sign conflict between intended first-touch direction and training target on valid rows, or an explicit decision to model them separately.",
+      "risk": "Optimizing model hyperparameters on direction_1h can improve classification metrics while failing to predict the tradable topology event."
+    },
+    {
+      "id": "F02_SWEEP_LABEL_EDGE_CASES_NEED_MEASUREMENT",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "UPPER_FIRST, LOWER_FIRST, NONE, BOTH and INVALID are implemented, but BOTH/INVALID handling is not quantified in supplied reports",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "Constants define LABEL_INVALID=-9, LABEL_LOWER_FIRST=-1, LABEL_NONE=0, LABEL_UPPER_FIRST=1, LABEL_BOTH=2."
+        },
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "valid_levels requires finite upper/lower levels, upper_levels >= prices, and lower_levels <= prices. Simultaneous upper/lower first-hit offsets are labeled BOTH."
+        },
+        {
+          "file": "scripts/backtest_topology_v2_strong_contrarian_25bp.py",
+          "detail": "simulate_candidate only accepts sweep_code_1h equal to the required -1 or 1; it does not trade NONE, BOTH, or INVALID."
+        }
+      ],
+      "why_it_matters": "BOTH rows can arise from coarse snapshots or jumps across both barriers between observations. Treating BOTH as invalid/ignored versus loss versus ambiguous changes class balance, label noise, and backtest comparability.",
+      "verification_test": "Compute row counts and percentages of INVALID, NONE, UPPER_FIRST, LOWER_FIRST, BOTH by symbol/timeframe/horizon. For BOTH rows, inspect median inter-snapshot interval and price move size from source to first-hit timestamp.",
+      "recommended_change": "Publish a sweep-label audit table and choose an explicit policy: exclude BOTH from training, map BOTH to ambiguous/abstain, or simulate conservatively as adverse first depending on strategy.",
+      "success_metric": "BOTH and INVALID shares are measured and stable by fold; if BOTH exceeds a pre-set tolerance such as 1-2% of valid rows, downstream metrics are reported both with and without BOTH.",
+      "risk": "Unmeasured ambiguous labels can inflate or depress first-touch model performance and obscure whether errors are model errors or label-resolution artifacts."
+    },
+    {
+      "id": "F03_OVERLAPPING_WINDOWS_AND_NON_INDEPENDENT_ROWS",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Dense snapshot labels create overlapping forward windows; event independence is not established",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_labels.py",
+          "detail": "Every row receives 15m, 1h and 4h forward labels using future target timestamps."
+        },
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "Every valid row receives 1h and 4h sweep labels by scanning future prices inside the horizon."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/metrics.json",
+          "detail": "The 1h model samples 800000 train rows, 300000 validation rows, and 300000 test rows from 2554739 valid labeled rows."
+        },
+        {
+          "file": "scripts/analyze_matrix_alignment.py",
+          "detail": "A non_overlapping_sample function exists for t-statistics in the matrix alignment study, but this overlap control is not shown in the core 1h model training metrics."
+        }
+      ],
+      "why_it_matters": "Adjacent snapshots can share most of the same future horizon, so rows are not independent. Standard row-level accuracy, AUC, log loss and confidence intervals can overstate effective sample size.",
+      "verification_test": "For each symbol/timeframe/horizon, bucket rows into non-overlapping horizon buckets and keep one row per bucket. Recompute model metrics and compare against dense-row metrics. Also estimate label autocorrelation at lags 1, 5, 15, 60 snapshots.",
+      "recommended_change": "Report both dense-row and non-overlapping/event-cluster metrics. For model validation, add grouped or purged splits that prevent overlapping target windows across train/validation/test and within metric calculations.",
+      "success_metric": "Non-overlapping test balanced accuracy/AUC remains within a pre-specified degradation bound, for example less than 10% relative drop from dense metrics, and effective sample size is reported.",
+      "risk": "Hyperparameter tuning on dense overlapping rows may select models that exploit serial persistence rather than independent predictive information."
+    },
+    {
+      "id": "F04_REPEATED_TIMESTAMP_SNAPSHOT_INDEPENDENCE_UNKNOWN",
+      "classification": "INFERRED",
+      "severity": "medium",
+      "title": "Duplicate IDs are checked, but repeated symbol/timeframe timestamps are not shown to be excluded",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_ml_features.py",
+          "detail": "validate_input checks duplicated id, null logged_at, and infinite numeric values."
+        },
+        {
+          "file": "scripts/build_topology_v2_labels.py",
+          "detail": "validate_input checks duplicated id, null logged_at, and non-positive current_price."
+        },
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "validate_input checks duplicated id, null logged_at, and non-positive current_price, but no explicit duplicate logged_at per symbol/timeframe check is present."
+        }
+      ],
+      "why_it_matters": "Multiple snapshots with different IDs but identical symbol/timeframe/logged_at can create repeated observations with identical or near-identical labels, inflating row counts and reducing independence.",
+      "verification_test": "Group liq_topology_v2_ml_features.parquet by symbol, timeframe, logged_at and count duplicates. Report duplicate-timestamp row share, duplicate price share, and whether duplicate groups cross train/validation/test boundaries.",
+      "recommended_change": "Add a validation step that either enforces uniqueness of symbol/timeframe/logged_at or deterministically deduplicates by latest id/source record before labeling.",
+      "success_metric": "Duplicate symbol/timeframe/logged_at share equals 0 after preprocessing, or duplicate handling is documented and model metrics are unchanged after deduplication within a pre-set tolerance.",
+      "risk": "Repeated snapshots can make validation scores optimistic and can bias class counts toward periods with higher logging frequency."
+    },
+    {
+      "id": "F05_CALENDAR_SYMBOL_DOMINANCE_IN_DIRECTION_TASK",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "Calendar and symbol features dominate the 1h direction task; topology-only is weaker than calendar-only on test",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_ablation_1h/ablation_metrics.json",
+          "detail": "calendar_only test balanced_accuracy is 0.4501181944262669; topology_only test balanced_accuracy is 0.4038438389491346; combined test balanced_accuracy is 0.44096298934188555."
+        },
+        {
+          "file": "data/models/topology_v2_ablation_1h/combined_feature_importance.csv",
+          "detail": "Top combined features are symbol, dow_sin, is_weekend_utc, hour_sin, hour_cos, log1p_lower_total_volume, log1p_upper_total_volume, dow_cos; many topology features have 0.0 importance."
+        },
+        {
+          "file": "data/models/topology_v2_catboost_1h/feature_importance.csv",
+          "detail": "Top CatBoost features include symbol, dow_sin, hour_sin, hour_cos, is_weekend_utc, and dow_cos before most topology variables."
+        }
+      ],
+      "why_it_matters": "The current 1h direction label may be more related to time/session and symbol regime than to liquidation topology. Hyperparameter changes will not fix a problem-definition mismatch.",
+      "verification_test": "Train/evaluate models with: topology-only, calendar-only, symbol-only, price/volatility-only, and topology residualized against calendar/symbol. Evaluate by symbol/timeframe and non-overlapping buckets.",
+      "recommended_change": "Reframe the label toward topology-specific path events such as first sweep, farther-side sweep, or post-sweep continuation, and report incremental lift of topology features over calendar/symbol baselines.",
+      "success_metric": "Topology feature block produces positive out-of-sample incremental lift versus calendar/symbol baseline on non-overlapping rows, for example at least +0.02 balanced accuracy or a statistically tested lift in top-decile event rate.",
+      "risk": "A model may appear predictive by exploiting calendar priors while not learning liquidation topology."
+    },
+    {
+      "id": "F06_FIXED_HORIZONS_AND_FIXED_BPS_THRESHOLDS_NOT_VOLATILITY_NORMALIZED",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Several core labels use fixed time horizons and fixed bps thresholds rather than volatility-normalized horizons",
+      "evidence": [
+        {
+          "file": "scripts/build_topology_v2_labels.py",
+          "detail": "HORIZONS are fixed at 15m, 1h, 4h; neutral thresholds are fixed at 0.0005, 0.0010, 0.0020."
+        },
+        {
+          "file": "scripts/build_topology_v2_strong_contrarian_labels.py",
+          "detail": "POST_HIT_WINDOW is fixed at 15 minutes and thresholds are fixed at 10bp and 25bp."
+        },
+        {
+          "file": "scripts/build_and_run_squeeze_grid.py",
+          "detail": "The squeeze research grid includes VOLATILITY_QUANTILES 0.90, 0.95, 0.975, but this volatility-aware concept is not shown in direction_1h labels."
+        }
+      ],
+      "why_it_matters": "A fixed 25bp or 1h label can mean different things across BTC, ETH, SOL, gold/silver symbols, timeframes, and volatility regimes. This can create heteroskedastic label noise and unstable class balance.",
+      "verification_test": "Compute realized volatility or ATR over pre-observation windows and stratify label rates and model metrics by volatility decile. Compare fixed bps labels to sigma-normalized labels and variable time-to-barrier horizons.",
+      "recommended_change": "Add volatility-normalized target variants: e.g., barrier = k times recent realized volatility, horizon = min fixed time and volatility-clock threshold, or class weights stratified by realized volatility.",
+      "success_metric": "Class balance and top-decile lift are more stable across volatility deciles; report coefficient of variation of event rate by volatility decile before and after normalization.",
+      "risk": "Models may learn volatility regime rather than topology, and thresholds may be too easy in high volatility and too rare in low volatility."
+    },
+    {
+      "id": "F07_ABSTENTION_THRESHOLD_HAS_NO_EFFECT_IN_TOP_CONFIGS",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Direction-confidence thresholds do not change selected top squeeze configurations in supplied reports",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Top configurations 3934-5394 have identical alerts, event_precision, direction_accuracy, trade counts and economic metrics across minimum_direction_confidence values 0.55, 0.60, 0.65 and 0.70 for the same alert percentile/cooldown/execution settings."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Top configurations 2278, 2764, 3250 and 3736 have identical raw_signals, trades and metrics across minimum_direction_confidence values 0.55, 0.60, 0.65 and 0.70 for the same threshold/cooldown/execution settings."
+        }
+      ],
+      "why_it_matters": "If an abstention threshold does not alter coverage or quality, it is not acting as a meaningful label-noise or uncertainty filter in the selected region.",
+      "verification_test": "For all scored OOS rows and generated signals, plot coverage, event rate, direction accuracy, mean net bps, and calibration error by direction_confidence decile and threshold.",
+      "recommended_change": "Calibrate direction probabilities and choose abstention thresholds from validation based on coverage-quality curves, not a static grid alone. Consider separate edge and direction models if confidence is poorly ranked.",
+      "success_metric": "Increasing confidence threshold produces a monotonic or at least statistically significant improvement in validation direction accuracy or event-conditioned economic proxy while reporting the coverage tradeoff.",
+      "risk": "False precision: reported high confidence may not reduce label noise or improve decision quality."
+    },
+    {
+      "id": "F08_EVENT_CLASSIFICATION_METRICS_DO_NOT_ALIGN_WITH_ECONOMIC_OUTCOME",
+      "classification": "OBSERVED",
+      "severity": "high",
+      "title": "High event/direction metrics in squeeze reports do not translate into positive net bps under reported execution assumptions",
+      "evidence": [
+        {
+          "file": "data/backtests/topology_v2_squeeze_full_stream/report.json",
+          "detail": "Best configuration reports event_precision 0.6944444444444444 and direction_accuracy 0.92, but mean_net_bps is -3.3333093933307953 and profit_factor is 0.79241506507768."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "Best configuration reports event_rate 1.0 and event_direction_accuracy 0.9852941176470589, but mean_net_bps is -0.0495200280758433 and profit_factor is 0.9955974240039208."
+        }
+      ],
+      "why_it_matters": "The label may detect an event without encoding whether the post-alert path provides enough tradable excursion after costs, stops, delays, and target placement.",
+      "verification_test": "For each alert, compute conditional MFE/MAE after alert and after entry, stratified by true event class, predicted event class, lead time, and confidence. Compare label-positive versus label-negative economic distributions.",
+      "recommended_change": "Add an economic label or secondary filter such as post-alert net favorable excursion after costs, target-before-stop, or expected value bucket. Keep event detection separate from execution viability.",
+      "success_metric": "Validation-selected event-positive/economic-positive rows show materially higher post-cost target-before-stop rate than event-positive/economic-negative rows, measured on non-overlapping OOS alerts.",
+      "risk": "Optimizing event detection alone can produce alerts that are directionally correct but too late, too noisy, or too small after costs."
+    },
+    {
+      "id": "F09_TWO_STAGE_EDGE_DIRECTION_DESIGN_PARTIALLY_PRESENT_BUT_NOT_VALIDATED_AS_SEPARATE_TASKS",
+      "classification": "INFERRED",
+      "severity": "medium",
+      "title": "The pipeline uses event probability and direction confidence, but evidence is insufficient that edge and direction are separately calibrated",
+      "evidence": [
+        {
+          "file": "scripts/backtest_topology_v2_squeeze_full_stream.py",
+          "detail": "score_frame computes squeeze_probability as 1 - probability_no_event and direction_confidence as max(long_squeeze, short_squeeze)/(long_squeeze + short_squeeze) from one multiclass model."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/metrics.json",
+          "detail": "A separate binary strong_contrarian_25bp_1h model exists and reports top-fraction lift, ROC AUC and PR AUC."
+        },
+        {
+          "file": "data/models/topology_v2_contrarian_sweep_1h/metrics.json",
+          "detail": "A separate binary target exists for farther liquidity side swept first within 1 hour."
+        }
+      ],
+      "why_it_matters": "A multiclass softmax can entangle event/no-event probability with direction. Edge probability may be well ranked while direction among events is poorly calibrated, or vice versa.",
+      "verification_test": "Evaluate two explicit stages: Stage 1 event/edge model for any relevant event; Stage 2 direction model trained only on event-positive or valid first-touch rows. Compare with the current multiclass model using calibration error, coverage, event AUC/PR AUC, and event-conditioned direction accuracy.",
+      "recommended_change": "Run a controlled two-stage experiment with out-of-fold probabilities: event model, direction conditional model, and an abstention rule based on both edge and direction confidence.",
+      "success_metric": "Two-stage validation improves event-conditioned direction accuracy or top-decile event lift at matched alert coverage, and calibration error is lower than the multiclass baseline.",
+      "risk": "A single multiclass model may produce scores that rank alerts well but give unreliable trade direction or abstention signals."
+    },
+    {
+      "id": "F10_STRONG_CONTRARIAN_EXECUTION_USES_LABEL_COLUMNS_FOR_TRIGGERING",
+      "classification": "INFERRED",
+      "severity": "high",
+      "title": "Strong-contrarian economic backtest uses future-derived sweep_code and first_hit_seconds during simulation",
+      "evidence": [
+        {
+          "file": "scripts/backtest_topology_v2_strong_contrarian_25bp.py",
+          "detail": "The backtest loads SWEEP_LABEL_PATH columns sweep_code_1h and first_hit_seconds_1h and passes candidates to simulate_candidate."
+        },
+        {
+          "file": "scripts/backtest_topology_v2_strong_contrarian_25bp.py",
+          "detail": "simulate_candidate returns None unless sweep_code_1h equals the required farther-side code, then computes expected_hit_time_ns from signal_time_ns + first_hit_seconds_1h."
+        },
+        {
+          "file": "scripts/build_topology_v2_sweep_labels.py",
+          "detail": "sweep_code_1h and first_hit_seconds_1h are generated by inspecting future prices inside the horizon."
+        }
+      ],
+      "why_it_matters": "This can be a valid proxy for a conditional stop-entry order only if the live strategy would observe the same trigger and cancel conditions without future knowledge. The supplied code does not prove that equivalence.",
+      "verification_test": "Reimplement the strong-contrarian backtest using only chronological price snapshots and current levels: place virtual far-side trigger and near-side cancellation at signal time, advance through future prices sequentially, and compare trade set, entry times, trigger_rate and net metrics against the label-column simulator.",
+      "recommended_change": "For execution backtests, do not read sweep_code_1h or first_hit_seconds_1h as decision inputs. Use them only for offline evaluation, or prove equality to a chronological event-driven simulator.",
+      "success_metric": "Chronological simulator reproduces at least 99% of label-based trade inclusion/exclusion and entry timestamps within one snapshot interval, or discrepancies are reported and label-based metrics are deprecated.",
+      "risk": "If not equivalent, future-derived labels can leak trigger information and overstate executable selectivity."
+    },
+    {
+      "id": "F11_SQUEEZE_EVENT_LABEL_BUILDER_MISSING",
+      "classification": "OBSERVED",
+      "severity": "critical",
+      "title": "The source logic for squeeze_event_dataset and detected_squeeze_events is not supplied",
+      "evidence": [
+        {
+          "file": "scripts/build_and_run_squeeze_grid.py",
+          "detail": "SOURCE_SCRIPT is scripts/research_topology_v2_squeeze_events.py and expected outputs include detected_squeeze_events.parquet, squeeze_event_dataset.parquet and walk_forward_predictions.parquet."
+        },
+        {
+          "file": "scripts/backtest_topology_v2_squeeze_full_stream.py",
+          "detail": "The backtest consumes squeeze_event_dataset.parquet and detected_squeeze_events.parquet but the supplied file is truncated before full summary logic and does not define how the original squeeze labels were created."
+        },
+        {
+          "file": "data/backtests/topology_v2_squeeze_signal/report.json",
+          "detail": "The experiment name includes tf_1h__future_60m__precursor_5m__q_0p975, but the exact event construction rules are not visible in the supplied files."
+        }
+      ],
+      "why_it_matters": "Without the event builder, the audit cannot verify label leakage, precursor offset semantics, volatility quantile calculation, class definitions, overlapping event clustering, or whether target_event is independent of features.",
+      "verification_test": "Provide scripts/research_topology_v2_squeeze_events.py and a small reproducible sample. Recompute detected_squeeze_events and squeeze_event_dataset from raw features and compare hashes/counts/class distributions with existing outputs.",
+      "recommended_change": "Freeze and version the squeeze-event label generator with unit tests for precursor windows, future windows, volatility quantile thresholds, event clustering and class assignment.",
+      "success_metric": "Rebuild produces identical row counts and deterministic event labels; unit tests cover boundary cases at event_time - precursor, event_time, horizon end, and overlapping events.",
+      "risk": "Squeeze model metrics and backtests cannot be trusted for research decisions until the label-generation process is auditable."
+    },
+    {
+      "id": "F12_CLASS_IMBALANCE_AND_LABEL_NOISE_ARE_TASK_DEPENDENT",
+      "classification": "OBSERVED",
+      "severity": "medium",
+      "title": "Different labels have very different base rates, requiring task-specific metrics and noise audits",
+      "evidence": [
+        {
+          "file": "data/models/topology_v2_baseline_1h/metrics.json",
+          "detail": "direction_1h sampled train class counts are -1: 297299, 0: 213773, 1: 288928; test counts are -1: 96920, 0: 102012, 1: 101068."
+        },
+        {
+          "file": "data/models/topology_v2_contrarian_sweep_1h/metrics.json",
+          "detail": "Farther liquidity side swept first target_counts are 0: 1497177 and 1: 857248."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp/metrics.json",
+          "detail": "strong_contrarian_25bp_1h positive_rate is 0.08323730847234463."
+        },
+        {
+          "file": "data/models/topology_v2_strong_contrarian_25bp_walk_forward/walk_forward_summary.csv",
+          "detail": "Test base_rate varies by fold: 0.102016, 0.090364, and 0.05796."
+        }
+      ],
+      "why_it_matters": "Accuracy and balanced accuracy are not interchangeable across endpoint direction, sweep-first, and rare strong-continuation labels. Rare positive labels require PR AUC, lift, calibration, and fold-level base-rate controls.",
+      "verification_test": "For each label family, report fold-level base rate, positive/negative noise proxies, PR AUC, ROC AUC, calibration error, top-fraction lift and group metrics by symbol/timeframe/volatility decile.",
+      "recommended_change": "Maintain separate evaluation protocols per label: multiclass balanced metrics for endpoint direction; first-touch accuracy/confusion for sweep labels; PR AUC and top-k lift for rare strong-continuation labels.",
+      "success_metric": "Each label report includes base-rate-adjusted metrics and fold-level stability; no model is selected on a metric inappropriate for its label prevalence.",
+      "risk": "A model can look acceptable on accuracy while being unusable for rare-event discovery or economically aligned selection."
+    }
+  ],
+  "missing_evidence": [
+    "scripts/research_topology_v2_squeeze_events.py is referenced but not supplied, so exact squeeze-event label construction is unknown.",
+    "No supplied report gives sweep_code_1h distribution counts for INVALID, NONE, UPPER_FIRST, LOWER_FIRST and BOTH from the generated parquet.",
+    "No supplied artifact shows duplicate symbol/timeframe/logged_at counts or repeated snapshot audit results.",
+    "No supplied artifact shows non-overlapping-row model metrics for the core direction_1h, sweep, or strong-contrarian models.",
+    "No supplied artifact gives calibration curves or reliability diagrams for squeeze_probability, direction_confidence, or strong_contrarian probabilities.",
+    "No supplied artifact shows volatility-decile stratified label distributions or model performance for fixed bps/horizon labels."
+  ],
+  "top_3_next_actions": [
+    "Freeze the problem definition by selecting the primary observation unit and label family: endpoint return, first-touch sweep, farther-side sweep, or post-sweep economic continuation; then publish label cross-tabs among direction_1h, sweep_code_1h and strong_contrarian_25bp_1h.",
+    "Run a label-independence audit: duplicate timestamp counts, overlapping-window effective sample size, non-overlapping bucket metrics, event clustering, and fold-level base-rate stability by symbol/timeframe/volatility decile.",
+    "Replace label-column execution shortcuts with chronological simulators and evaluate a two-stage edge-plus-direction pipeline with calibrated abstention before changing model hyperparameters."
+  ]
+}
