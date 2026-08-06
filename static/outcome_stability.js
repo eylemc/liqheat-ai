@@ -11,7 +11,7 @@
   // The backend refreshes roughly every 75 seconds while the UI polls every
   // 15 seconds. Confirmations therefore count only distinct backend snapshots,
   // never repeated reads of the same payload.
-  const ENTER_CONFIDENCE = 0.64;
+  const ENTER_CONFIDENCE = 0.58;
   const EXIT_CONFIDENCE = 0.56;
   const REVERSE_CONFIDENCE = 0.68;
   const ENTER_CONFIRMATIONS = 3;
