@@ -43,15 +43,32 @@ MATRIX_FEATURES = list(v4.MATRIX_FEATURES) + [
     "matrix_topology_conflict",
 ]
 FEATURE_GROUPS = {
-    "position_only": ["symbol", "timeframe", "side"] + POSITION_FEATURES,
-    "position_plus_topology": ["symbol", "timeframe", "side"] + POSITION_FEATURES + TOPOLOGY_FEATURES,
-    "position_plus_matrix": ["symbol", "timeframe", "side"] + POSITION_FEATURES + MATRIX_FEATURES,
+    "position_only": (
+        ["symbol", "timeframe", "side"]
+        + POSITION_FEATURES
+    ),
+    "position_plus_topology": (
+        ["symbol", "timeframe", "side"]
+        + POSITION_FEATURES
+        + TOPOLOGY_FEATURES
+    ),
+    "position_plus_matrix": (
+        ["symbol", "timeframe", "side"]
+        + POSITION_FEATURES
+        + MATRIX_FEATURES
+    ),
     "full_position_matrix_topology": (
         ["symbol", "timeframe", "side"]
         + POSITION_FEATURES
         + TOPOLOGY_FEATURES
         + MATRIX_FEATURES
     ),
+}
+
+# CatBoost requires every feature name to be unique.
+FEATURE_GROUPS = {
+    name: list(dict.fromkeys(features))
+    for name, features in FEATURE_GROUPS.items()
 }
 
 
@@ -273,6 +290,9 @@ def fit_model(
     features: list[str],
     a: argparse.Namespace,
 ):
+    # Defensive deduplication before creating CatBoost Pool.
+    features = list(dict.fromkeys(features))
+
     xtr, cats, used = prepare_xy(train, features)
     xva, _, _ = prepare_xy(validation, used)
     model = CatBoostClassifier(
@@ -285,6 +305,9 @@ def fit_model(
         verbose=False,
         allow_writing_files=False,
         auto_class_weights="Balanced",
+        task_type="GPU",
+        devices="0",
+        bootstrap_type="Bayesian",
     )
     model.fit(
         Pool(xtr, train["action_code"], cat_features=cats),
