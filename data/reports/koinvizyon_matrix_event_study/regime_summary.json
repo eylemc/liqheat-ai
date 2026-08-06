@@ -1,0 +1,1379 @@
+{
+  "status": "research_only",
+  "topology_tolerance_minutes": 90,
+  "overall": {
+    "BEAR_MATRIX__BEAR_TOPOLOGY": {
+      "count": 563,
+      "1h": {
+        "valid": 563,
+        "mean_return_bps": -1.267896191465639,
+        "median_return_bps": 0.8569760528764903,
+        "positive_return_rate": 0.5062166962699822,
+        "mfe_long_median_bps": 26.839949145358588,
+        "mae_long_median_bps": -31.71892155666822,
+        "long_stop_hit_rate": 0.325044404973357,
+        "long_take_hit_rate": 0.24866785079928952,
+        "short_stop_hit_rate": 0.24866785079928952,
+        "short_take_hit_rate": 0.325044404973357
+      },
+      "2h": {
+        "valid": 563,
+        "mean_return_bps": -1.1251731121302098,
+        "median_return_bps": 6.868131868131844,
+        "positive_return_rate": 0.5488454706927176,
+        "mfe_long_median_bps": 40.21378042614154,
+        "mae_long_median_bps": -44.26896386695467,
+        "long_stop_hit_rate": 0.4422735346358792,
+        "long_take_hit_rate": 0.3978685612788632,
+        "short_stop_hit_rate": 0.3978685612788632,
+        "short_take_hit_rate": 0.4422735346358792
+      },
+      "4h": {
+        "valid": 563,
+        "mean_return_bps": -4.795814434162768,
+        "median_return_bps": 1.1859582542705915,
+        "positive_return_rate": 0.5062166962699822,
+        "mfe_long_median_bps": 57.397044052232005,
+        "mae_long_median_bps": -61.53846153846176,
+        "long_stop_hit_rate": 0.5808170515097691,
+        "long_take_hit_rate": 0.5488454706927176,
+        "short_stop_hit_rate": 0.5488454706927176,
+        "short_take_hit_rate": 0.5808170515097691
+      }
+    },
+    "BEAR_MATRIX__BULL_TOPOLOGY": {
+      "count": 1175,
+      "1h": {
+        "valid": 1175,
+        "mean_return_bps": 1.0831558986300085,
+        "median_return_bps": 2.234949947128584,
+        "positive_return_rate": 0.5285106382978724,
+        "mfe_long_median_bps": 22.23005744556472,
+        "mae_long_median_bps": -22.773929762389677,
+        "long_stop_hit_rate": 0.23914893617021277,
+        "long_take_hit_rate": 0.2076595744680851,
+        "short_stop_hit_rate": 0.2076595744680851,
+        "short_take_hit_rate": 0.23914893617021277
+      },
+      "2h": {
+        "valid": 1175,
+        "mean_return_bps": 0.3523534340279566,
+        "median_return_bps": 0.9820635905821717,
+        "positive_return_rate": 0.5131914893617021,
+        "mfe_long_median_bps": 31.40330372548572,
+        "mae_long_median_bps": -33.52477436168178,
+        "long_stop_hit_rate": 0.3727659574468085,
+        "long_take_hit_rate": 0.32340425531914896,
+        "short_stop_hit_rate": 0.32340425531914896,
+        "short_take_hit_rate": 0.3727659574468085
+      },
+      "4h": {
+        "valid": 1175,
+        "mean_return_bps": -1.6137585566866324,
+        "median_return_bps": -0.09333246222986702,
+        "positive_return_rate": 0.4978723404255319,
+        "mfe_long_median_bps": 44.41033022335894,
+        "mae_long_median_bps": -52.3607303990492,
+        "long_stop_hit_rate": 0.5191489361702127,
+        "long_take_hit_rate": 0.454468085106383,
+        "short_stop_hit_rate": 0.454468085106383,
+        "short_take_hit_rate": 0.5191489361702127
+      }
+    },
+    "BEAR_MATRIX__NEUTRAL_TOPOLOGY": {
+      "count": 2741,
+      "1h": {
+        "valid": 2740,
+        "mean_return_bps": -0.7445825723445221,
+        "median_return_bps": 0.0,
+        "positive_return_rate": 0.49616928128420285,
+        "mfe_long_median_bps": 25.396730052240635,
+        "mae_long_median_bps": -27.767230454031623,
+        "long_stop_hit_rate": 0.27883211678832115,
+        "long_take_hit_rate": 0.23065693430656933,
+        "short_stop_hit_rate": 0.23065693430656933,
+        "short_take_hit_rate": 0.27883211678832115
+      },
+      "2h": {
+        "valid": 2740,
+        "mean_return_bps": -1.7148185747613416,
+        "median_return_bps": 1.159555008150015,
+        "positive_return_rate": 0.5049252097774535,
+        "mfe_long_median_bps": 35.763585904117214,
+        "mae_long_median_bps": -41.13364113884744,
+        "long_stop_hit_rate": 0.41751824817518246,
+        "long_take_hit_rate": 0.3613138686131387,
+        "short_stop_hit_rate": 0.3613138686131387,
+        "short_take_hit_rate": 0.41751824817518246
+      },
+      "4h": {
+        "valid": 2740,
+        "mean_return_bps": -1.7374895819844618,
+        "median_return_bps": -0.530212736554736,
+        "positive_return_rate": 0.4950747902225465,
+        "mfe_long_median_bps": 53.0867853858108,
+        "mae_long_median_bps": -59.57681273459636,
+        "long_stop_hit_rate": 0.5667883211678832,
+        "long_take_hit_rate": 0.5215328467153285,
+        "short_stop_hit_rate": 0.5215328467153285,
+        "short_take_hit_rate": 0.5667883211678832
+      }
+    },
+    "BULL_MATRIX__BEAR_TOPOLOGY": {
+      "count": 580,
+      "1h": {
+        "valid": 580,
+        "mean_return_bps": -0.6433092502671747,
+        "median_return_bps": -2.7588275888246194,
+        "positive_return_rate": 0.4724137931034483,
+        "mfe_long_median_bps": 24.375396041539375,
+        "mae_long_median_bps": -27.53413315334741,
+        "long_stop_hit_rate": 0.27413793103448275,
+        "long_take_hit_rate": 0.2413793103448276,
+        "short_stop_hit_rate": 0.2413793103448276,
+        "short_take_hit_rate": 0.27413793103448275
+      },
+      "2h": {
+        "valid": 580,
+        "mean_return_bps": -2.3698426986627847,
+        "median_return_bps": -2.802740503005108,
+        "positive_return_rate": 0.46551724137931033,
+        "mfe_long_median_bps": 38.21037216251821,
+        "mae_long_median_bps": -41.491408259558554,
+        "long_stop_hit_rate": 0.41724137931034483,
+        "long_take_hit_rate": 0.3724137931034483,
+        "short_stop_hit_rate": 0.3724137931034483,
+        "short_take_hit_rate": 0.41724137931034483
+      },
+      "4h": {
+        "valid": 580,
+        "mean_return_bps": -3.6208740605135197,
+        "median_return_bps": -5.413969321647616,
+        "positive_return_rate": 0.4672413793103448,
+        "mfe_long_median_bps": 52.401542089974825,
+        "mae_long_median_bps": -62.64510139762314,
+        "long_stop_hit_rate": 0.5827586206896552,
+        "long_take_hit_rate": 0.5224137931034483,
+        "short_stop_hit_rate": 0.5224137931034483,
+        "short_take_hit_rate": 0.5827586206896552
+      }
+    },
+    "BULL_MATRIX__BULL_TOPOLOGY": {
+      "count": 1310,
+      "1h": {
+        "valid": 1310,
+        "mean_return_bps": -0.534136313482657,
+        "median_return_bps": -0.31907481058079945,
+        "positive_return_rate": 0.4954198473282443,
+        "mfe_long_median_bps": 20.24836124656759,
+        "mae_long_median_bps": -20.766889175624637,
+        "long_stop_hit_rate": 0.17862595419847327,
+        "long_take_hit_rate": 0.1732824427480916,
+        "short_stop_hit_rate": 0.1732824427480916,
+        "short_take_hit_rate": 0.17862595419847327
+      },
+      "2h": {
+        "valid": 1310,
+        "mean_return_bps": -0.9487124233845872,
+        "median_return_bps": -0.29790948122387917,
+        "positive_return_rate": 0.4946564885496183,
+        "mfe_long_median_bps": 29.341027262672625,
+        "mae_long_median_bps": -29.51078311799582,
+        "long_stop_hit_rate": 0.30305343511450383,
+        "long_take_hit_rate": 0.2916030534351145,
+        "short_stop_hit_rate": 0.2916030534351145,
+        "short_take_hit_rate": 0.30305343511450383
+      },
+      "4h": {
+        "valid": 1310,
+        "mean_return_bps": -0.06333654922394208,
+        "median_return_bps": 0.0,
+        "positive_return_rate": 0.49923664122137407,
+        "mfe_long_median_bps": 42.87153608670713,
+        "mae_long_median_bps": -43.53854202425511,
+        "long_stop_hit_rate": 0.44732824427480916,
+        "long_take_hit_rate": 0.4381679389312977,
+        "short_stop_hit_rate": 0.4381679389312977,
+        "short_take_hit_rate": 0.44732824427480916
+      }
+    },
+    "BULL_MATRIX__NEUTRAL_TOPOLOGY": {
+      "count": 2850,
+      "1h": {
+        "valid": 2848,
+        "mean_return_bps": 0.6404388431088809,
+        "median_return_bps": -0.17869394833447405,
+        "positive_return_rate": 0.4926315789473684,
+        "mfe_long_median_bps": 24.356910776481833,
+        "mae_long_median_bps": -24.520940990260808,
+        "long_stop_hit_rate": 0.22226123595505617,
+        "long_take_hit_rate": 0.23174157303370788,
+        "short_stop_hit_rate": 0.23174157303370788,
+        "short_take_hit_rate": 0.22226123595505617
+      },
+      "2h": {
+        "valid": 2848,
+        "mean_return_bps": 1.922667582110394,
+        "median_return_bps": -1.1655011655009595,
+        "positive_return_rate": 0.48771929824561405,
+        "mfe_long_median_bps": 35.20591535093098,
+        "mae_long_median_bps": -36.5851824727298,
+        "long_stop_hit_rate": 0.3616573033707865,
+        "long_take_hit_rate": 0.3732443820224719,
+        "short_stop_hit_rate": 0.3732443820224719,
+        "short_take_hit_rate": 0.3616573033707865
+      },
+      "4h": {
+        "valid": 2848,
+        "mean_return_bps": 2.314896691914052,
+        "median_return_bps": -0.8772684776697792,
+        "positive_return_rate": 0.49157894736842106,
+        "mfe_long_median_bps": 52.410016488319,
+        "mae_long_median_bps": -52.64389619027699,
+        "long_stop_hit_rate": 0.523876404494382,
+        "long_take_hit_rate": 0.5154494382022472,
+        "short_stop_hit_rate": 0.5154494382022472,
+        "short_take_hit_rate": 0.523876404494382
+      }
+    },
+    "NEUTRAL_MATRIX__BEAR_TOPOLOGY": {
+      "count": 10,
+      "1h": {
+        "valid": 10,
+        "mean_return_bps": -13.735108665281604,
+        "median_return_bps": -21.31509505897411,
+        "positive_return_rate": 0.4,
+        "mfe_long_median_bps": 48.46308860736559,
+        "mae_long_median_bps": -55.90437911554835,
+        "long_stop_hit_rate": 0.7,
+        "long_take_hit_rate": 0.4,
+        "short_stop_hit_rate": 0.4,
+        "short_take_hit_rate": 0.7
+      },
+      "2h": {
+        "valid": 10,
+        "mean_return_bps": -1.3114070763663421,
+        "median_return_bps": -3.020125739351953,
+        "positive_return_rate": 0.5,
+        "mfe_long_median_bps": 56.106168817608996,
+        "mae_long_median_bps": -66.89917119697186,
+        "long_stop_hit_rate": 0.7,
+        "long_take_hit_rate": 0.6,
+        "short_stop_hit_rate": 0.6,
+        "short_take_hit_rate": 0.7
+      },
+      "4h": {
+        "valid": 10,
+        "mean_return_bps": 30.280033643418573,
+        "median_return_bps": 85.89553622921464,
+        "positive_return_rate": 0.6,
+        "mfe_long_median_bps": 184.03302861747517,
+        "mae_long_median_bps": -101.86011883554613,
+        "long_stop_hit_rate": 0.8,
+        "long_take_hit_rate": 0.8,
+        "short_stop_hit_rate": 0.8,
+        "short_take_hit_rate": 0.8
+      }
+    },
+    "NEUTRAL_MATRIX__BULL_TOPOLOGY": {
+      "count": 18,
+      "1h": {
+        "valid": 18,
+        "mean_return_bps": 7.580608496713443,
+        "median_return_bps": -24.27866234956777,
+        "positive_return_rate": 0.4444444444444444,
+        "mfe_long_median_bps": 37.55669601286593,
+        "mae_long_median_bps": -46.191858761714386,
+        "long_stop_hit_rate": 0.4444444444444444,
+        "long_take_hit_rate": 0.3888888888888889,
+        "short_stop_hit_rate": 0.3888888888888889,
+        "short_take_hit_rate": 0.4444444444444444
+      },
+      "2h": {
+        "valid": 18,
+        "mean_return_bps": -13.869137965673202,
+        "median_return_bps": -16.4090460714944,
+        "positive_return_rate": 0.2777777777777778,
+        "mfe_long_median_bps": 37.55669601286593,
+        "mae_long_median_bps": -60.30965034580559,
+        "long_stop_hit_rate": 0.6111111111111112,
+        "long_take_hit_rate": 0.3888888888888889,
+        "short_stop_hit_rate": 0.3888888888888889,
+        "short_take_hit_rate": 0.6111111111111112
+      },
+      "4h": {
+        "valid": 18,
+        "mean_return_bps": -0.49981786868559336,
+        "median_return_bps": -16.923146486128026,
+        "positive_return_rate": 0.4444444444444444,
+        "mfe_long_median_bps": 49.44007734152378,
+        "mae_long_median_bps": -90.32474670344793,
+        "long_stop_hit_rate": 0.7222222222222222,
+        "long_take_hit_rate": 0.5,
+        "short_stop_hit_rate": 0.5,
+        "short_take_hit_rate": 0.7222222222222222
+      }
+    },
+    "NEUTRAL_MATRIX__NEUTRAL_TOPOLOGY": {
+      "count": 89,
+      "1h": {
+        "valid": 89,
+        "mean_return_bps": 2.82857227609928,
+        "median_return_bps": 2.2976249038975105,
+        "positive_return_rate": 0.5056179775280899,
+        "mfe_long_median_bps": 41.118301285008044,
+        "mae_long_median_bps": -29.952764926622912,
+        "long_stop_hit_rate": 0.33707865168539325,
+        "long_take_hit_rate": 0.43820224719101125,
+        "short_stop_hit_rate": 0.43820224719101125,
+        "short_take_hit_rate": 0.33707865168539325
+      },
+      "2h": {
+        "valid": 89,
+        "mean_return_bps": 11.810128141137291,
+        "median_return_bps": 14.270424545128613,
+        "positive_return_rate": 0.5393258426966292,
+        "mfe_long_median_bps": 73.44996045911768,
+        "mae_long_median_bps": -41.28433567055501,
+        "long_stop_hit_rate": 0.4606741573033708,
+        "long_take_hit_rate": 0.6067415730337079,
+        "short_stop_hit_rate": 0.6067415730337079,
+        "short_take_hit_rate": 0.4606741573033708
+      },
+      "4h": {
+        "valid": 89,
+        "mean_return_bps": 12.998781196614772,
+        "median_return_bps": 27.38747320790491,
+        "positive_return_rate": 0.651685393258427,
+        "mfe_long_median_bps": 103.25369191979794,
+        "mae_long_median_bps": -58.98273282716193,
+        "long_stop_hit_rate": 0.5730337078651685,
+        "long_take_hit_rate": 0.7303370786516854,
+        "short_stop_hit_rate": 0.7303370786516854,
+        "short_take_hit_rate": 0.5730337078651685
+      }
+    }
+  },
+  "by_symbol": {
+    "BTCUSDT": {
+      "BEAR_MATRIX__BEAR_TOPOLOGY": {
+        "count": 56,
+        "1h": {
+          "valid": 56,
+          "mean_return_bps": 4.175018242900913,
+          "median_return_bps": -0.31623500074129396,
+          "positive_return_rate": 0.5,
+          "mfe_long_median_bps": 23.097494003379015,
+          "mae_long_median_bps": -24.193477679370634,
+          "long_stop_hit_rate": 0.17857142857142858,
+          "long_take_hit_rate": 0.19642857142857142,
+          "short_stop_hit_rate": 0.19642857142857142,
+          "short_take_hit_rate": 0.17857142857142858
+        },
+        "2h": {
+          "valid": 56,
+          "mean_return_bps": 2.468648740560868,
+          "median_return_bps": 8.614420988048987,
+          "positive_return_rate": 0.5178571428571429,
+          "mfe_long_median_bps": 39.837057812228686,
+          "mae_long_median_bps": -27.32712606316412,
+          "long_stop_hit_rate": 0.3392857142857143,
+          "long_take_hit_rate": 0.375,
+          "short_stop_hit_rate": 0.375,
+          "short_take_hit_rate": 0.3392857142857143
+        },
+        "4h": {
+          "valid": 56,
+          "mean_return_bps": 9.192801003162161,
+          "median_return_bps": 3.5569288403625166,
+          "positive_return_rate": 0.5178571428571429,
+          "mfe_long_median_bps": 55.04630824555989,
+          "mae_long_median_bps": -51.8373728211996,
+          "long_stop_hit_rate": 0.5178571428571429,
+          "long_take_hit_rate": 0.5357142857142857,
+          "short_stop_hit_rate": 0.5357142857142857,
+          "short_take_hit_rate": 0.5178571428571429
+        }
+      },
+      "BEAR_MATRIX__BULL_TOPOLOGY": {
+        "count": 669,
+        "1h": {
+          "valid": 669,
+          "mean_return_bps": -0.27132708071966727,
+          "median_return_bps": 1.2218071956504595,
+          "positive_return_rate": 0.523168908819133,
+          "mfe_long_median_bps": 18.371329822610694,
+          "mae_long_median_bps": -21.784817980091688,
+          "long_stop_hit_rate": 0.21524663677130046,
+          "long_take_hit_rate": 0.15844544095665172,
+          "short_stop_hit_rate": 0.15844544095665172,
+          "short_take_hit_rate": 0.21524663677130046
+        },
+        "2h": {
+          "valid": 669,
+          "mean_return_bps": 0.6983269978768453,
+          "median_return_bps": 1.5341457000084269,
+          "positive_return_rate": 0.5276532137518685,
+          "mfe_long_median_bps": 26.046761202622726,
+          "mae_long_median_bps": -29.394473838918465,
+          "long_stop_hit_rate": 0.33482810164424515,
+          "long_take_hit_rate": 0.26307922272047835,
+          "short_stop_hit_rate": 0.26307922272047835,
+          "short_take_hit_rate": 0.33482810164424515
+        },
+        "4h": {
+          "valid": 669,
+          "mean_return_bps": -0.8435008048049414,
+          "median_return_bps": 0.11704472111739861,
+          "positive_return_rate": 0.5007473841554559,
+          "mfe_long_median_bps": 39.380541663647236,
+          "mae_long_median_bps": -47.381015687316676,
+          "long_stop_hit_rate": 0.47832585949177875,
+          "long_take_hit_rate": 0.3991031390134529,
+          "short_stop_hit_rate": 0.3991031390134529,
+          "short_take_hit_rate": 0.47832585949177875
+        }
+      },
+      "BEAR_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 694,
+        "1h": {
+          "valid": 694,
+          "mean_return_bps": -0.5111208385639089,
+          "median_return_bps": -0.40040603519253537,
+          "positive_return_rate": 0.49279538904899134,
+          "mfe_long_median_bps": 20.422579035841437,
+          "mae_long_median_bps": -23.39032847708422,
+          "long_stop_hit_rate": 0.20893371757925072,
+          "long_take_hit_rate": 0.1829971181556196,
+          "short_stop_hit_rate": 0.1829971181556196,
+          "short_take_hit_rate": 0.20893371757925072
+        },
+        "2h": {
+          "valid": 694,
+          "mean_return_bps": -2.346305641790389,
+          "median_return_bps": -2.886815747460414,
+          "positive_return_rate": 0.4769452449567723,
+          "mfe_long_median_bps": 30.212378961796958,
+          "mae_long_median_bps": -35.09354132328335,
+          "long_stop_hit_rate": 0.35014409221902015,
+          "long_take_hit_rate": 0.29250720461095103,
+          "short_stop_hit_rate": 0.29250720461095103,
+          "short_take_hit_rate": 0.35014409221902015
+        },
+        "4h": {
+          "valid": 694,
+          "mean_return_bps": -3.403697613055166,
+          "median_return_bps": -2.150969760645882,
+          "positive_return_rate": 0.484149855907781,
+          "mfe_long_median_bps": 44.419118885131724,
+          "mae_long_median_bps": -51.24090025255934,
+          "long_stop_hit_rate": 0.5129682997118156,
+          "long_take_hit_rate": 0.46397694524495675,
+          "short_stop_hit_rate": 0.46397694524495675,
+          "short_take_hit_rate": 0.5129682997118156
+        }
+      },
+      "BULL_MATRIX__BEAR_TOPOLOGY": {
+        "count": 74,
+        "1h": {
+          "valid": 74,
+          "mean_return_bps": -2.139003955456798,
+          "median_return_bps": -4.396589863515654,
+          "positive_return_rate": 0.40540540540540543,
+          "mfe_long_median_bps": 17.460074512481995,
+          "mae_long_median_bps": -23.119525125838702,
+          "long_stop_hit_rate": 0.16216216216216217,
+          "long_take_hit_rate": 0.13513513513513514,
+          "short_stop_hit_rate": 0.13513513513513514,
+          "short_take_hit_rate": 0.16216216216216217
+        },
+        "2h": {
+          "valid": 74,
+          "mean_return_bps": 1.6936418049188038,
+          "median_return_bps": -5.037328097997618,
+          "positive_return_rate": 0.4594594594594595,
+          "mfe_long_median_bps": 25.799420297639706,
+          "mae_long_median_bps": -31.746329726966003,
+          "long_stop_hit_rate": 0.32432432432432434,
+          "long_take_hit_rate": 0.22972972972972974,
+          "short_stop_hit_rate": 0.22972972972972974,
+          "short_take_hit_rate": 0.32432432432432434
+        },
+        "4h": {
+          "valid": 74,
+          "mean_return_bps": -11.809522442700194,
+          "median_return_bps": -8.42963360683402,
+          "positive_return_rate": 0.43243243243243246,
+          "mfe_long_median_bps": 37.517717977625374,
+          "mae_long_median_bps": -48.49828606816264,
+          "long_stop_hit_rate": 0.4864864864864865,
+          "long_take_hit_rate": 0.36486486486486486,
+          "short_stop_hit_rate": 0.36486486486486486,
+          "short_take_hit_rate": 0.4864864864864865
+        }
+      },
+      "BULL_MATRIX__BULL_TOPOLOGY": {
+        "count": 760,
+        "1h": {
+          "valid": 760,
+          "mean_return_bps": 0.46994005423875723,
+          "median_return_bps": -0.25534145398242725,
+          "positive_return_rate": 0.4986842105263158,
+          "mfe_long_median_bps": 17.110378771284516,
+          "mae_long_median_bps": -16.262000851599566,
+          "long_stop_hit_rate": 0.10921052631578948,
+          "long_take_hit_rate": 0.11973684210526316,
+          "short_stop_hit_rate": 0.11973684210526316,
+          "short_take_hit_rate": 0.10921052631578948
+        },
+        "2h": {
+          "valid": 760,
+          "mean_return_bps": -0.6320837488566536,
+          "median_return_bps": -0.5540064400405553,
+          "positive_return_rate": 0.4934210526315789,
+          "mfe_long_median_bps": 25.73451697571505,
+          "mae_long_median_bps": -24.21631918961109,
+          "long_stop_hit_rate": 0.22894736842105262,
+          "long_take_hit_rate": 0.2355263157894737,
+          "short_stop_hit_rate": 0.2355263157894737,
+          "short_take_hit_rate": 0.22894736842105262
+        },
+        "4h": {
+          "valid": 760,
+          "mean_return_bps": 0.6331589069353799,
+          "median_return_bps": 1.3997366346085727,
+          "positive_return_rate": 0.5118421052631579,
+          "mfe_long_median_bps": 37.77683531632215,
+          "mae_long_median_bps": -33.97136181327254,
+          "long_stop_hit_rate": 0.37105263157894736,
+          "long_take_hit_rate": 0.3881578947368421,
+          "short_stop_hit_rate": 0.3881578947368421,
+          "short_take_hit_rate": 0.37105263157894736
+        }
+      },
+      "BULL_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 820,
+        "1h": {
+          "valid": 819,
+          "mean_return_bps": 0.06418876184493472,
+          "median_return_bps": -0.5016514895095359,
+          "positive_return_rate": 0.4878048780487805,
+          "mfe_long_median_bps": 20.27109537183991,
+          "mae_long_median_bps": -19.986951194284064,
+          "long_stop_hit_rate": 0.16361416361416362,
+          "long_take_hit_rate": 0.15995115995115994,
+          "short_stop_hit_rate": 0.15995115995115994,
+          "short_take_hit_rate": 0.16361416361416362
+        },
+        "2h": {
+          "valid": 819,
+          "mean_return_bps": 1.3658750129282256,
+          "median_return_bps": 0.6126811756179684,
+          "positive_return_rate": 0.5036585365853659,
+          "mfe_long_median_bps": 28.351352326434487,
+          "mae_long_median_bps": -27.41139021126937,
+          "long_stop_hit_rate": 0.27594627594627597,
+          "long_take_hit_rate": 0.29914529914529914,
+          "short_stop_hit_rate": 0.29914529914529914,
+          "short_take_hit_rate": 0.27594627594627597
+        },
+        "4h": {
+          "valid": 819,
+          "mean_return_bps": 2.5171747815770926,
+          "median_return_bps": 0.5978084596258704,
+          "positive_return_rate": 0.5024390243902439,
+          "mfe_long_median_bps": 42.522941708673656,
+          "mae_long_median_bps": -41.50291608843837,
+          "long_stop_hit_rate": 0.4163614163614164,
+          "long_take_hit_rate": 0.43101343101343104,
+          "short_stop_hit_rate": 0.43101343101343104,
+          "short_take_hit_rate": 0.4163614163614164
+        }
+      },
+      "NEUTRAL_MATRIX__BULL_TOPOLOGY": {
+        "count": 9,
+        "1h": {
+          "valid": 9,
+          "mean_return_bps": -11.221573881718097,
+          "median_return_bps": -24.810006801313513,
+          "positive_return_rate": 0.3333333333333333,
+          "mfe_long_median_bps": 28.801196380121574,
+          "mae_long_median_bps": -44.366369320206765,
+          "long_stop_hit_rate": 0.4444444444444444,
+          "long_take_hit_rate": 0.3333333333333333,
+          "short_stop_hit_rate": 0.3333333333333333,
+          "short_take_hit_rate": 0.4444444444444444
+        },
+        "2h": {
+          "valid": 9,
+          "mean_return_bps": -11.578065050581456,
+          "median_return_bps": -14.235336939816268,
+          "positive_return_rate": 0.3333333333333333,
+          "mfe_long_median_bps": 28.801196380121574,
+          "mae_long_median_bps": -64.5864849927913,
+          "long_stop_hit_rate": 0.5555555555555556,
+          "long_take_hit_rate": 0.3333333333333333,
+          "short_stop_hit_rate": 0.3333333333333333,
+          "short_take_hit_rate": 0.5555555555555556
+        },
+        "4h": {
+          "valid": 9,
+          "mean_return_bps": -22.73874839655293,
+          "median_return_bps": -48.32217145356643,
+          "positive_return_rate": 0.3333333333333333,
+          "mfe_long_median_bps": 42.60285620393933,
+          "mae_long_median_bps": -90.07271195874634,
+          "long_stop_hit_rate": 0.7777777777777778,
+          "long_take_hit_rate": 0.4444444444444444,
+          "short_stop_hit_rate": 0.4444444444444444,
+          "short_take_hit_rate": 0.7777777777777778
+        }
+      },
+      "NEUTRAL_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 30,
+        "1h": {
+          "valid": 30,
+          "mean_return_bps": 5.771101893176976,
+          "median_return_bps": 4.1591125438178445,
+          "positive_return_rate": 0.5666666666666667,
+          "mfe_long_median_bps": 33.31151185753778,
+          "mae_long_median_bps": -23.851042655606,
+          "long_stop_hit_rate": 0.3,
+          "long_take_hit_rate": 0.36666666666666664,
+          "short_stop_hit_rate": 0.36666666666666664,
+          "short_take_hit_rate": 0.3
+        },
+        "2h": {
+          "valid": 30,
+          "mean_return_bps": 11.106104742763266,
+          "median_return_bps": 9.449874403998916,
+          "positive_return_rate": 0.5,
+          "mfe_long_median_bps": 71.11520213105571,
+          "mae_long_median_bps": -38.60038606096295,
+          "long_stop_hit_rate": 0.36666666666666664,
+          "long_take_hit_rate": 0.5666666666666667,
+          "short_stop_hit_rate": 0.5666666666666667,
+          "short_take_hit_rate": 0.36666666666666664
+        },
+        "4h": {
+          "valid": 30,
+          "mean_return_bps": 20.161119744410886,
+          "median_return_bps": 23.341437644488483,
+          "positive_return_rate": 0.7,
+          "mfe_long_median_bps": 95.51085199779874,
+          "mae_long_median_bps": -41.49663069032861,
+          "long_stop_hit_rate": 0.4666666666666667,
+          "long_take_hit_rate": 0.7333333333333333,
+          "short_stop_hit_rate": 0.7333333333333333,
+          "short_take_hit_rate": 0.4666666666666667
+        }
+      }
+    },
+    "ETHUSDT": {
+      "BEAR_MATRIX__BEAR_TOPOLOGY": {
+        "count": 167,
+        "1h": {
+          "valid": 167,
+          "mean_return_bps": -1.1190809677593485,
+          "median_return_bps": -1.1675491392248993,
+          "positive_return_rate": 0.47904191616766467,
+          "mfe_long_median_bps": 24.107186122013236,
+          "mae_long_median_bps": -29.311281931826414,
+          "long_stop_hit_rate": 0.2754491017964072,
+          "long_take_hit_rate": 0.2215568862275449,
+          "short_stop_hit_rate": 0.2215568862275449,
+          "short_take_hit_rate": 0.2754491017964072
+        },
+        "2h": {
+          "valid": 167,
+          "mean_return_bps": 6.053687713191983,
+          "median_return_bps": 2.8753376164880606,
+          "positive_return_rate": 0.5508982035928144,
+          "mfe_long_median_bps": 39.635142445488825,
+          "mae_long_median_bps": -37.72698114286155,
+          "long_stop_hit_rate": 0.41317365269461076,
+          "long_take_hit_rate": 0.38323353293413176,
+          "short_stop_hit_rate": 0.38323353293413176,
+          "short_take_hit_rate": 0.41317365269461076
+        },
+        "4h": {
+          "valid": 167,
+          "mean_return_bps": 8.45092388291558,
+          "median_return_bps": 6.520866773676026,
+          "positive_return_rate": 0.5269461077844312,
+          "mfe_long_median_bps": 56.928688123230046,
+          "mae_long_median_bps": -53.3274892249247,
+          "long_stop_hit_rate": 0.5449101796407185,
+          "long_take_hit_rate": 0.5329341317365269,
+          "short_stop_hit_rate": 0.5329341317365269,
+          "short_take_hit_rate": 0.5449101796407185
+        }
+      },
+      "BEAR_MATRIX__BULL_TOPOLOGY": {
+        "count": 313,
+        "1h": {
+          "valid": 313,
+          "mean_return_bps": 8.29411226086122,
+          "median_return_bps": 6.971761531746612,
+          "positive_return_rate": 0.5559105431309904,
+          "mfe_long_median_bps": 26.94111718416936,
+          "mae_long_median_bps": -22.641743060437534,
+          "long_stop_hit_rate": 0.23322683706070288,
+          "long_take_hit_rate": 0.24920127795527156,
+          "short_stop_hit_rate": 0.24920127795527156,
+          "short_take_hit_rate": 0.23322683706070288
+        },
+        "2h": {
+          "valid": 313,
+          "mean_return_bps": 6.716380832508846,
+          "median_return_bps": 2.740211802252368,
+          "positive_return_rate": 0.5175718849840255,
+          "mfe_long_median_bps": 38.15574720942516,
+          "mae_long_median_bps": -35.11156416355243,
+          "long_stop_hit_rate": 0.3769968051118211,
+          "long_take_hit_rate": 0.3769968051118211,
+          "short_stop_hit_rate": 0.3769968051118211,
+          "short_take_hit_rate": 0.3769968051118211
+        },
+        "4h": {
+          "valid": 313,
+          "mean_return_bps": 4.611022652596738,
+          "median_return_bps": 3.6479145153323067,
+          "positive_return_rate": 0.5239616613418531,
+          "mfe_long_median_bps": 51.11194741771019,
+          "mae_long_median_bps": -53.384851048262625,
+          "long_stop_hit_rate": 0.5239616613418531,
+          "long_take_hit_rate": 0.5079872204472844,
+          "short_stop_hit_rate": 0.5079872204472844,
+          "short_take_hit_rate": 0.5239616613418531
+        }
+      },
+      "BEAR_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 1048,
+        "1h": {
+          "valid": 1048,
+          "mean_return_bps": -2.654928384027064,
+          "median_return_bps": -1.1776628913751086,
+          "positive_return_rate": 0.48950381679389315,
+          "mfe_long_median_bps": 25.366007979436,
+          "mae_long_median_bps": -29.406774757339548,
+          "long_stop_hit_rate": 0.29961832061068705,
+          "long_take_hit_rate": 0.22805343511450382,
+          "short_stop_hit_rate": 0.22805343511450382,
+          "short_take_hit_rate": 0.29961832061068705
+        },
+        "2h": {
+          "valid": 1048,
+          "mean_return_bps": -4.176237481973998,
+          "median_return_bps": 0.6553554520005722,
+          "positive_return_rate": 0.5047709923664122,
+          "mfe_long_median_bps": 35.5664679452361,
+          "mae_long_median_bps": -43.341605020070226,
+          "long_stop_hit_rate": 0.44179389312977096,
+          "long_take_hit_rate": 0.3606870229007634,
+          "short_stop_hit_rate": 0.3606870229007634,
+          "short_take_hit_rate": 0.44179389312977096
+        },
+        "4h": {
+          "valid": 1048,
+          "mean_return_bps": -4.749585424179371,
+          "median_return_bps": 0.8990760417793009,
+          "positive_return_rate": 0.5019083969465649,
+          "mfe_long_median_bps": 53.094691356522226,
+          "mae_long_median_bps": -64.02500636088936,
+          "long_stop_hit_rate": 0.5925572519083969,
+          "long_take_hit_rate": 0.5229007633587787,
+          "short_stop_hit_rate": 0.5229007633587787,
+          "short_take_hit_rate": 0.5925572519083969
+        }
+      },
+      "BULL_MATRIX__BEAR_TOPOLOGY": {
+        "count": 187,
+        "1h": {
+          "valid": 187,
+          "mean_return_bps": 0.47420999071875836,
+          "median_return_bps": -1.5559493452033113,
+          "positive_return_rate": 0.4919786096256685,
+          "mfe_long_median_bps": 22.46103697667312,
+          "mae_long_median_bps": -25.49252400094071,
+          "long_stop_hit_rate": 0.21390374331550802,
+          "long_take_hit_rate": 0.22459893048128343,
+          "short_stop_hit_rate": 0.22459893048128343,
+          "short_take_hit_rate": 0.21390374331550802
+        },
+        "2h": {
+          "valid": 187,
+          "mean_return_bps": -4.038624105572695,
+          "median_return_bps": -5.962870483258165,
+          "positive_return_rate": 0.42780748663101603,
+          "mfe_long_median_bps": 36.19019029035498,
+          "mae_long_median_bps": -36.67700381679406,
+          "long_stop_hit_rate": 0.3582887700534759,
+          "long_take_hit_rate": 0.35294117647058826,
+          "short_stop_hit_rate": 0.35294117647058826,
+          "short_take_hit_rate": 0.3582887700534759
+        },
+        "4h": {
+          "valid": 187,
+          "mean_return_bps": -6.9791781795146886,
+          "median_return_bps": -6.439901456540831,
+          "positive_return_rate": 0.45989304812834225,
+          "mfe_long_median_bps": 48.32962138084484,
+          "mae_long_median_bps": -55.69345916862978,
+          "long_stop_hit_rate": 0.5240641711229946,
+          "long_take_hit_rate": 0.48128342245989303,
+          "short_stop_hit_rate": 0.48128342245989303,
+          "short_take_hit_rate": 0.5240641711229946
+        }
+      },
+      "BULL_MATRIX__BULL_TOPOLOGY": {
+        "count": 337,
+        "1h": {
+          "valid": 337,
+          "mean_return_bps": -5.120114699572689,
+          "median_return_bps": -1.1119759813182917,
+          "positive_return_rate": 0.47477744807121663,
+          "mfe_long_median_bps": 21.411330398977135,
+          "mae_long_median_bps": -25.768714917292492,
+          "long_stop_hit_rate": 0.24925816023738873,
+          "long_take_hit_rate": 0.18694362017804153,
+          "short_stop_hit_rate": 0.18694362017804153,
+          "short_take_hit_rate": 0.24925816023738873
+        },
+        "2h": {
+          "valid": 337,
+          "mean_return_bps": -5.121397232045838,
+          "median_return_bps": -0.3844358404037074,
+          "positive_return_rate": 0.49851632047477745,
+          "mfe_long_median_bps": 32.9936419977428,
+          "mae_long_median_bps": -38.72019563888496,
+          "long_stop_hit_rate": 0.39762611275964393,
+          "long_take_hit_rate": 0.314540059347181,
+          "short_stop_hit_rate": 0.314540059347181,
+          "short_take_hit_rate": 0.39762611275964393
+        },
+        "4h": {
+          "valid": 337,
+          "mean_return_bps": -5.390388200431642,
+          "median_return_bps": -2.331445150594025,
+          "positive_return_rate": 0.4836795252225519,
+          "mfe_long_median_bps": 46.40890884373583,
+          "mae_long_median_bps": -52.521008403362266,
+          "long_stop_hit_rate": 0.5222551928783383,
+          "long_take_hit_rate": 0.47774480712166173,
+          "short_stop_hit_rate": 0.47774480712166173,
+          "short_take_hit_rate": 0.5222551928783383
+        }
+      },
+      "BULL_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 1021,
+        "1h": {
+          "valid": 1020,
+          "mean_return_bps": 1.7203076615026787,
+          "median_return_bps": 0.47257126876143474,
+          "positive_return_rate": 0.5073457394711067,
+          "mfe_long_median_bps": 24.689720338135768,
+          "mae_long_median_bps": -24.067438437608835,
+          "long_stop_hit_rate": 0.2196078431372549,
+          "long_take_hit_rate": 0.24215686274509804,
+          "short_stop_hit_rate": 0.24215686274509804,
+          "short_take_hit_rate": 0.2196078431372549
+        },
+        "2h": {
+          "valid": 1020,
+          "mean_return_bps": 2.968429208591057,
+          "median_return_bps": -1.025194951101982,
+          "positive_return_rate": 0.49069539666993145,
+          "mfe_long_median_bps": 36.64917769716336,
+          "mae_long_median_bps": -35.10165964991763,
+          "long_stop_hit_rate": 0.346078431372549,
+          "long_take_hit_rate": 0.38529411764705884,
+          "short_stop_hit_rate": 0.38529411764705884,
+          "short_take_hit_rate": 0.346078431372549
+        },
+        "4h": {
+          "valid": 1020,
+          "mean_return_bps": 3.472297036154876,
+          "median_return_bps": 0.1319352147977071,
+          "positive_return_rate": 0.5004897159647405,
+          "mfe_long_median_bps": 54.81699047410915,
+          "mae_long_median_bps": -52.44641154827645,
+          "long_stop_hit_rate": 0.5235294117647059,
+          "long_take_hit_rate": 0.5284313725490196,
+          "short_stop_hit_rate": 0.5284313725490196,
+          "short_take_hit_rate": 0.5235294117647059
+        }
+      },
+      "NEUTRAL_MATRIX__BEAR_TOPOLOGY": {
+        "count": 2,
+        "1h": {
+          "valid": 2,
+          "mean_return_bps": -85.54417491993703,
+          "median_return_bps": -85.54417491993703,
+          "positive_return_rate": 0.0,
+          "mfe_long_median_bps": 43.012066106155046,
+          "mae_long_median_bps": -141.24697129255958,
+          "long_stop_hit_rate": 1.0,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 1.0
+        },
+        "2h": {
+          "valid": 2,
+          "mean_return_bps": -104.22981412659183,
+          "median_return_bps": -104.22981412659183,
+          "positive_return_rate": 0.0,
+          "mfe_long_median_bps": 43.012066106155046,
+          "mae_long_median_bps": -156.91677030191752,
+          "long_stop_hit_rate": 1.0,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 1.0
+        },
+        "4h": {
+          "valid": 2,
+          "mean_return_bps": -43.62419022045815,
+          "median_return_bps": -43.62419022045815,
+          "positive_return_rate": 0.5,
+          "mfe_long_median_bps": 122.60287965828786,
+          "mae_long_median_bps": -213.11943950421352,
+          "long_stop_hit_rate": 1.0,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 1.0
+        }
+      },
+      "NEUTRAL_MATRIX__BULL_TOPOLOGY": {
+        "count": 5,
+        "1h": {
+          "valid": 5,
+          "mean_return_bps": 11.743801221513417,
+          "median_return_bps": -29.091155514251454,
+          "positive_return_rate": 0.4,
+          "mfe_long_median_bps": 26.622521685253364,
+          "mae_long_median_bps": -48.017348203222014,
+          "long_stop_hit_rate": 0.4,
+          "long_take_hit_rate": 0.4,
+          "short_stop_hit_rate": 0.4,
+          "short_take_hit_rate": 0.4
+        },
+        "2h": {
+          "valid": 5,
+          "mean_return_bps": 13.46012973884658,
+          "median_return_bps": -12.246359975217613,
+          "positive_return_rate": 0.2,
+          "mfe_long_median_bps": 26.622521685253364,
+          "mae_long_median_bps": -58.956784386619,
+          "long_stop_hit_rate": 0.8,
+          "long_take_hit_rate": 0.4,
+          "short_stop_hit_rate": 0.4,
+          "short_take_hit_rate": 0.8
+        },
+        "4h": {
+          "valid": 5,
+          "mean_return_bps": 79.46152650886518,
+          "median_return_bps": 3.297974453004837,
+          "positive_return_rate": 0.6,
+          "mfe_long_median_bps": 86.92869976126616,
+          "mae_long_median_bps": -95.5428121385138,
+          "long_stop_hit_rate": 0.8,
+          "long_take_hit_rate": 0.6,
+          "short_stop_hit_rate": 0.6,
+          "short_take_hit_rate": 0.8
+        }
+      },
+      "NEUTRAL_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 32,
+        "1h": {
+          "valid": 32,
+          "mean_return_bps": 12.60299245626685,
+          "median_return_bps": 13.867239475165993,
+          "positive_return_rate": 0.5625,
+          "mfe_long_median_bps": 51.61631091778251,
+          "mae_long_median_bps": -30.51384637669352,
+          "long_stop_hit_rate": 0.28125,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 0.28125
+        },
+        "2h": {
+          "valid": 32,
+          "mean_return_bps": 26.198579713561443,
+          "median_return_bps": 33.359961331854706,
+          "positive_return_rate": 0.5625,
+          "mfe_long_median_bps": 85.2685882215487,
+          "mae_long_median_bps": -36.6666095971041,
+          "long_stop_hit_rate": 0.46875,
+          "long_take_hit_rate": 0.625,
+          "short_stop_hit_rate": 0.625,
+          "short_take_hit_rate": 0.46875
+        },
+        "4h": {
+          "valid": 32,
+          "mean_return_bps": 31.92504878046787,
+          "median_return_bps": 58.27419452448912,
+          "positive_return_rate": 0.6875,
+          "mfe_long_median_bps": 136.45749724508715,
+          "mae_long_median_bps": -64.43644103176993,
+          "long_stop_hit_rate": 0.5625,
+          "long_take_hit_rate": 0.75,
+          "short_stop_hit_rate": 0.75,
+          "short_take_hit_rate": 0.5625
+        }
+      }
+    },
+    "SOLUSDT": {
+      "BEAR_MATRIX__BEAR_TOPOLOGY": {
+        "count": 340,
+        "1h": {
+          "valid": 340,
+          "mean_return_bps": -2.2374707522993966,
+          "median_return_bps": 2.2655432518281504,
+          "positive_return_rate": 0.5205882352941177,
+          "mfe_long_median_bps": 29.401896951670725,
+          "mae_long_median_bps": -35.97469612619142,
+          "long_stop_hit_rate": 0.3735294117647059,
+          "long_take_hit_rate": 0.27058823529411763,
+          "short_stop_hit_rate": 0.27058823529411763,
+          "short_take_hit_rate": 0.3735294117647059
+        },
+        "2h": {
+          "valid": 340,
+          "mean_return_bps": -5.243184234422874,
+          "median_return_bps": 7.740054000654473,
+          "positive_return_rate": 0.5529411764705883,
+          "mfe_long_median_bps": 40.907573460212674,
+          "mae_long_median_bps": -46.5005204767388,
+          "long_stop_hit_rate": 0.47352941176470587,
+          "long_take_hit_rate": 0.4088235294117647,
+          "short_stop_hit_rate": 0.4088235294117647,
+          "short_take_hit_rate": 0.47352941176470587
+        },
+        "4h": {
+          "valid": 340,
+          "mean_return_bps": -13.60630785605183,
+          "median_return_bps": -1.8203453834625405,
+          "positive_return_rate": 0.49411764705882355,
+          "mfe_long_median_bps": 57.72888947697341,
+          "mae_long_median_bps": -67.30232118893787,
+          "long_stop_hit_rate": 0.6088235294117647,
+          "long_take_hit_rate": 0.5588235294117647,
+          "short_stop_hit_rate": 0.5588235294117647,
+          "short_take_hit_rate": 0.6088235294117647
+        }
+      },
+      "BEAR_MATRIX__BULL_TOPOLOGY": {
+        "count": 193,
+        "1h": {
+          "valid": 193,
+          "mean_return_bps": -5.916223522061373,
+          "median_return_bps": 1.1807769512350852,
+          "positive_return_rate": 0.5025906735751295,
+          "mfe_long_median_bps": 29.351710056151337,
+          "mae_long_median_bps": -28.575316369573443,
+          "long_stop_hit_rate": 0.3316062176165803,
+          "long_take_hit_rate": 0.31088082901554404,
+          "short_stop_hit_rate": 0.31088082901554404,
+          "short_take_hit_rate": 0.3316062176165803
+        },
+        "2h": {
+          "valid": 193,
+          "mean_return_bps": -11.167837705554556,
+          "median_return_bps": -7.028230057397611,
+          "positive_return_rate": 0.45595854922279794,
+          "mfe_long_median_bps": 38.2912528419288,
+          "mae_long_median_bps": -49.67288587351737,
+          "long_stop_hit_rate": 0.49740932642487046,
+          "long_take_hit_rate": 0.44559585492227977,
+          "short_stop_hit_rate": 0.44559585492227977,
+          "short_take_hit_rate": 0.49740932642487046
+        },
+        "4h": {
+          "valid": 193,
+          "mean_return_bps": -14.378830859870803,
+          "median_return_bps": -7.7439339184304234,
+          "positive_return_rate": 0.44559585492227977,
+          "mfe_long_median_bps": 58.350765165693375,
+          "mae_long_median_bps": -72.47237733159051,
+          "long_stop_hit_rate": 0.6528497409326425,
+          "long_take_hit_rate": 0.5595854922279793,
+          "short_stop_hit_rate": 0.5595854922279793,
+          "short_take_hit_rate": 0.6528497409326425
+        }
+      },
+      "BEAR_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 999,
+        "1h": {
+          "valid": 998,
+          "mean_return_bps": 1.099124809819364,
+          "median_return_bps": 1.262008209583776,
+          "positive_return_rate": 0.5055055055055055,
+          "mfe_long_median_bps": 29.085592556981066,
+          "mae_long_median_bps": -30.219310416759736,
+          "long_stop_hit_rate": 0.30561122244488975,
+          "long_take_hit_rate": 0.2665330661322645,
+          "short_stop_hit_rate": 0.2665330661322645,
+          "short_take_hit_rate": 0.30561122244488975
+        },
+        "2h": {
+          "valid": 998,
+          "mean_return_bps": 1.309048198061326,
+          "median_return_bps": 3.140630512693532,
+          "positive_return_rate": 0.5245245245245245,
+          "mfe_long_median_bps": 41.100115387761036,
+          "mae_long_median_bps": -42.47157907793175,
+          "long_stop_hit_rate": 0.43887775551102204,
+          "long_take_hit_rate": 0.40981963927855714,
+          "short_stop_hit_rate": 0.40981963927855714,
+          "short_take_hit_rate": 0.43887775551102204
+        },
+        "4h": {
+          "valid": 998,
+          "mean_return_bps": 2.58417857050385,
+          "median_return_bps": 0.0,
+          "positive_return_rate": 0.4954954954954955,
+          "mfe_long_median_bps": 58.64351320622796,
+          "mae_long_median_bps": -64.17891554239941,
+          "long_stop_hit_rate": 0.5771543086172345,
+          "long_take_hit_rate": 0.5601202404809619,
+          "short_stop_hit_rate": 0.5601202404809619,
+          "short_take_hit_rate": 0.5771543086172345
+        }
+      },
+      "BULL_MATRIX__BEAR_TOPOLOGY": {
+        "count": 319,
+        "1h": {
+          "valid": 319,
+          "mean_return_bps": -0.9514430743434672,
+          "median_return_bps": -2.7144408251911223,
+          "positive_return_rate": 0.47648902821316613,
+          "mfe_long_median_bps": 28.49939712813665,
+          "mae_long_median_bps": -33.788349776996405,
+          "long_stop_hit_rate": 0.335423197492163,
+          "long_take_hit_rate": 0.27586206896551724,
+          "short_stop_hit_rate": 0.27586206896551724,
+          "short_take_hit_rate": 0.335423197492163
+        },
+        "2h": {
+          "valid": 319,
+          "mean_return_bps": -2.334218028358346,
+          "median_return_bps": -1.1910433539774612,
+          "positive_return_rate": 0.4890282131661442,
+          "mfe_long_median_bps": 42.684372776855554,
+          "mae_long_median_bps": -46.423044875609776,
+          "long_stop_hit_rate": 0.47335423197492166,
+          "long_take_hit_rate": 0.4169278996865204,
+          "short_stop_hit_rate": 0.4169278996865204,
+          "short_take_hit_rate": 0.47335423197492166
+        },
+        "4h": {
+          "valid": 319,
+          "mean_return_bps": 0.24734804147718076,
+          "median_return_bps": -3.5855145213337103,
+          "positive_return_rate": 0.47962382445141066,
+          "mfe_long_median_bps": 58.34027860459612,
+          "mae_long_median_bps": -68.97401157778037,
+          "long_stop_hit_rate": 0.6394984326018809,
+          "long_take_hit_rate": 0.5830721003134797,
+          "short_stop_hit_rate": 0.5830721003134797,
+          "short_take_hit_rate": 0.6394984326018809
+        }
+      },
+      "BULL_MATRIX__BULL_TOPOLOGY": {
+        "count": 213,
+        "1h": {
+          "valid": 213,
+          "mean_return_bps": 3.1389936238134255,
+          "median_return_bps": 1.3257324671878123,
+          "positive_return_rate": 0.5164319248826291,
+          "mfe_long_median_bps": 29.70163358984923,
+          "mae_long_median_bps": -31.53100548872967,
+          "long_stop_hit_rate": 0.3145539906103286,
+          "long_take_hit_rate": 0.3427230046948357,
+          "short_stop_hit_rate": 0.3427230046948357,
+          "short_take_hit_rate": 0.3145539906103286
+        },
+        "2h": {
+          "valid": 213,
+          "mean_return_bps": 4.523386111252086,
+          "median_return_bps": 0.0,
+          "positive_return_rate": 0.49295774647887325,
+          "mfe_long_median_bps": 40.22918444471557,
+          "mae_long_median_bps": -43.5540069686402,
+          "long_stop_hit_rate": 0.41784037558685444,
+          "long_take_hit_rate": 0.45539906103286387,
+          "short_stop_hit_rate": 0.45539906103286387,
+          "short_take_hit_rate": 0.41784037558685444
+        },
+        "4h": {
+          "valid": 213,
+          "mean_return_bps": 5.879761383996288,
+          "median_return_bps": -4.009087264466027,
+          "positive_return_rate": 0.4788732394366197,
+          "mfe_long_median_bps": 63.003663003664556,
+          "mae_long_median_bps": -70.12622720897532,
+          "long_stop_hit_rate": 0.6009389671361502,
+          "long_take_hit_rate": 0.5539906103286385,
+          "short_stop_hit_rate": 0.5539906103286385,
+          "short_take_hit_rate": 0.6009389671361502
+        }
+      },
+      "BULL_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 1009,
+        "1h": {
+          "valid": 1009,
+          "mean_return_bps": 0.01653658522334784,
+          "median_return_bps": -1.160900859067393,
+          "positive_return_rate": 0.48166501486620417,
+          "mfe_long_median_bps": 28.409090909089496,
+          "mae_long_median_bps": -29.737766964044177,
+          "long_stop_hit_rate": 0.27254707631318137,
+          "long_take_hit_rate": 0.2794846382556987,
+          "short_stop_hit_rate": 0.2794846382556987,
+          "short_take_hit_rate": 0.27254707631318137
+        },
+        "2h": {
+          "valid": 1009,
+          "mean_return_bps": 1.3174507884036741,
+          "median_return_bps": -2.7144408251911223,
+          "positive_return_rate": 0.4717542120911794,
+          "mfe_long_median_bps": 41.77897574124012,
+          "mae_long_median_bps": -44.39252336448596,
+          "long_stop_hit_rate": 0.44697720515361744,
+          "long_take_hit_rate": 0.42120911793855303,
+          "short_stop_hit_rate": 0.42120911793855303,
+          "short_take_hit_rate": 0.44697720515361744
+        },
+        "4h": {
+          "valid": 1009,
+          "mean_return_bps": 0.9806904416071429,
+          "median_return_bps": -2.9424746211559327,
+          "positive_return_rate": 0.47373637264618434,
+          "mfe_long_median_bps": 58.10575246949501,
+          "mae_long_median_bps": -63.41924166779145,
+          "long_stop_hit_rate": 0.6114965312190287,
+          "long_take_hit_rate": 0.5708622398414271,
+          "short_stop_hit_rate": 0.5708622398414271,
+          "short_take_hit_rate": 0.6114965312190287
+        }
+      },
+      "NEUTRAL_MATRIX__BEAR_TOPOLOGY": {
+        "count": 8,
+        "1h": {
+          "valid": 8,
+          "mean_return_bps": 4.217157898382257,
+          "median_return_bps": 4.090601478006772,
+          "positive_return_rate": 0.5,
+          "mfe_long_median_bps": 48.46308860736559,
+          "mae_long_median_bps": -51.267983003487345,
+          "long_stop_hit_rate": 0.625,
+          "long_take_hit_rate": 0.375,
+          "short_stop_hit_rate": 0.375,
+          "short_take_hit_rate": 0.625
+        },
+        "2h": {
+          "valid": 8,
+          "mean_return_bps": 24.41819468619002,
+          "median_return_bps": 6.616201007106914,
+          "positive_return_rate": 0.625,
+          "mfe_long_median_bps": 56.106168817608996,
+          "mae_long_median_bps": -51.267983003487345,
+          "long_stop_hit_rate": 0.625,
+          "long_take_hit_rate": 0.625,
+          "short_stop_hit_rate": 0.625,
+          "short_take_hit_rate": 0.625
+        },
+        "4h": {
+          "valid": 8,
+          "mean_return_bps": 48.75608960938776,
+          "median_return_bps": 103.74697209132421,
+          "positive_return_rate": 0.625,
+          "mfe_long_median_bps": 184.03302861747517,
+          "mae_long_median_bps": -80.36706781749558,
+          "long_stop_hit_rate": 0.75,
+          "long_take_hit_rate": 0.875,
+          "short_stop_hit_rate": 0.875,
+          "short_take_hit_rate": 0.75
+        }
+      },
+      "NEUTRAL_MATRIX__BULL_TOPOLOGY": {
+        "count": 4,
+        "1h": {
+          "valid": 4,
+          "mean_return_bps": 44.681527942184445,
+          "median_return_bps": 74.01282445891556,
+          "positive_return_rate": 0.75,
+          "mfe_long_median_bps": 101.81695700394621,
+          "mae_long_median_bps": -38.69289337262271,
+          "long_stop_hit_rate": 0.5,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 0.5
+        },
+        "2h": {
+          "valid": 4,
+          "mean_return_bps": -53.18563665527937,
+          "median_return_bps": -19.370827382210187,
+          "positive_return_rate": 0.25,
+          "mfe_long_median_bps": 135.88534154309272,
+          "mae_long_median_bps": -54.98883991661929,
+          "long_stop_hit_rate": 0.5,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 0.5
+        },
+        "4h": {
+          "valid": 4,
+          "mean_return_bps": -50.41390465292257,
+          "median_return_bps": -64.51002755950397,
+          "positive_return_rate": 0.5,
+          "mfe_long_median_bps": 138.640839593297,
+          "mae_long_median_bps": -139.77479983598386,
+          "long_stop_hit_rate": 0.5,
+          "long_take_hit_rate": 0.5,
+          "short_stop_hit_rate": 0.5,
+          "short_take_hit_rate": 0.5
+        }
+      },
+      "NEUTRAL_MATRIX__NEUTRAL_TOPOLOGY": {
+        "count": 27,
+        "1h": {
+          "valid": 27,
+          "mean_return_bps": -12.025403067518983,
+          "median_return_bps": -16.720410844380808,
+          "positive_return_rate": 0.37037037037037035,
+          "mfe_long_median_bps": 37.09465119061895,
+          "mae_long_median_bps": -42.87756074321081,
+          "long_stop_hit_rate": 0.4444444444444444,
+          "long_take_hit_rate": 0.4444444444444444,
+          "short_stop_hit_rate": 0.4444444444444444,
+          "short_take_hit_rate": 0.4444444444444444
+        },
+        "2h": {
+          "valid": 27,
+          "mean_return_bps": -4.460603279838722,
+          "median_return_bps": 13.09835675160853,
+          "positive_return_rate": 0.5555555555555556,
+          "mfe_long_median_bps": 66.59531454394019,
+          "mae_long_median_bps": -54.468927952463496,
+          "long_stop_hit_rate": 0.5555555555555556,
+          "long_take_hit_rate": 0.6296296296296297,
+          "short_stop_hit_rate": 0.6296296296296297,
+          "short_take_hit_rate": 0.5555555555555556
+        },
+        "4h": {
+          "valid": 27,
+          "mean_return_bps": -17.39050469661422,
+          "median_return_bps": 15.732784702893188,
+          "positive_return_rate": 0.5555555555555556,
+          "mfe_long_median_bps": 103.25369191979794,
+          "mae_long_median_bps": -76.10893090736148,
+          "long_stop_hit_rate": 0.7037037037037037,
+          "long_take_hit_rate": 0.7037037037037037,
+          "short_stop_hit_rate": 0.7037037037037037,
+          "short_take_hit_rate": 0.7037037037037037
+        }
+      }
+    }
+  }
+}
