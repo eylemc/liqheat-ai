@@ -1,0 +1,16 @@
+{
+  "engine": "liqheat-forecast-v2",
+  "symbol": "SOLUSDT",
+  "horizon_minutes": 15,
+  "neutral_threshold_bps": 9.315323829650879,
+  "neutral_quantile": 0.35,
+  "train_rows": 163804,
+  "validation_rows": 18201,
+  "train_start": "2026-03-30T07:36:13.538652+00:00",
+  "train_end": "2026-07-23T11:40:17.297492+00:00",
+  "validation_start": "2026-07-23T11:41:13.481620+00:00",
+  "validation_end": "2026-08-05T03:43:12.958748+00:00",
+  "feature_count": 443,
+  "direction_trees": 367,
+  "magnitude_trees": 413
+}

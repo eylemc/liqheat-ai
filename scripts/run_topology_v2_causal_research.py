@@ -5,6 +5,7 @@ import argparse, json, math, sys, time
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 from catboost import CatBoostClassifier, Pool
 from sklearn.metrics import balanced_accuracy_score, f1_score, log_loss, confusion_matrix
 
@@ -151,10 +152,27 @@ def class_metrics(y,p):
     }
 
 def add_full_stream_targets(stream,events,window):
-    s=stream.sort_values(["symbol","logged_at"]).copy()
+    s=stream.copy()
     e=events[["symbol","event_time","event_direction"]].copy()
+
+    # merge_asof requires identical join-key dtypes.
+    s["symbol"] = s["symbol"].astype("string")
+    e["symbol"] = e["symbol"].astype("string")
+
+    # merge_asof also requires identical datetime units.
+    s["logged_at"] = pd.to_datetime(
+        s["logged_at"],
+        utc=True,
+    ).astype("datetime64[ns, UTC]")
+
+    e["event_time"] = pd.to_datetime(
+        e["event_time"],
+        utc=True,
+    ).astype("datetime64[ns, UTC]")
+
+    s=s.sort_values(["logged_at","symbol"]).copy()
     e=e.rename(columns={"event_time":"next_event_time","event_direction":"next_event_direction"})
-    e=e.sort_values(["symbol","next_event_time"])
+    e=e.sort_values(["next_event_time","symbol"])
     joined=pd.merge_asof(
       s,e,left_on="logged_at",right_on="next_event_time",by="symbol",
       direction="forward",allow_exact_matches=False
@@ -271,7 +289,7 @@ def main():
     event["logged_at"]=pd.to_datetime(event.logged_at,utc=True)
     event=event[event.target_event.isin(CLASSES)].sort_values("logged_at").reset_index(drop=True)
     print("Loading full 1h stream...")
-    schema=pd.read_parquet(FEATURE_PATH,columns=[]).columns
+    schema=pq.read_schema(FEATURE_PATH).names
     groups=feature_groups(schema)
     needed=list(dict.fromkeys(PRICE_COLS+sum(groups.values(),[])))
     stream=pd.read_parquet(FEATURE_PATH,columns=needed,filters=[("timeframe","==","1h")])

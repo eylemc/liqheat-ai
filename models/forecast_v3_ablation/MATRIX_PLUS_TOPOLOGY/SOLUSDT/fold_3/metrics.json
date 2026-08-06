@@ -1,0 +1,203 @@
+{
+  "experiment": "MATRIX_PLUS_TOPOLOGY",
+  "symbol": "SOLUSDT",
+  "fold": "fold_3",
+  "feature_count": 539,
+  "neutral_threshold_bps": 9.34907054901123,
+  "train_rows": 127403,
+  "validation_rows": 18201,
+  "test_rows": 36401,
+  "train_start": "2026-03-30T07:36:13.538652+00:00",
+  "train_end": "2026-06-28T04:16:14.258014+00:00",
+  "test_start": "2026-07-10T20:17:17.887894+00:00",
+  "test_end": "2026-08-05T03:43:12.958748+00:00",
+  "accuracy": 0.4545754237520947,
+  "balanced_accuracy": 0.40409743772307133,
+  "macro_f1": 0.39496748925282504,
+  "event_precision": 0.664112667834209,
+  "event_recall": 0.44766355140186914,
+  "event_f1": 0.5348181230534171,
+  "event_direction_accuracy": 0.3706217162872154,
+  "expectancy_pearson": 0.052967008982108446,
+  "expectancy_spearman": 0.07998921018982891,
+  "expectancy_sign_accuracy": 0.5135023763083432,
+  "confusion_matrix": [
+    [
+      2943,
+      5544,
+      1810
+    ],
+    [
+      2665,
+      11468,
+      1938
+    ],
+    [
+      2212,
+      5685,
+      2136
+    ]
+  ],
+  "classification_report": {
+    "DOWN": {
+      "precision": 0.37634271099744243,
+      "recall": 0.28581140137904243,
+      "f1-score": 0.32488822652757077,
+      "support": 10297.0
+    },
+    "NEUTRAL": {
+      "precision": 0.5052650129973124,
+      "recall": 0.7135834733370667,
+      "f1-score": 0.5916219562525794,
+      "support": 16071.0
+    },
+    "UP": {
+      "precision": 0.36301835486063905,
+      "recall": 0.21289743845310474,
+      "f1-score": 0.26839228497832507,
+      "support": 10033.0
+    },
+    "accuracy": 0.4545754237520947,
+    "macro avg": {
+      "precision": 0.41487535961846467,
+      "recall": 0.40409743772307133,
+      "f1-score": 0.39496748925282504,
+      "support": 36401.0
+    },
+    "weighted avg": {
+      "precision": 0.4295892440684944,
+      "recall": 0.4545754237520947,
+      "f1-score": 0.4270792099853612,
+      "support": 36401.0
+    }
+  },
+  "confidence_thresholds": [
+    {
+      "minimum_confidence": 0.5,
+      "rows": 986,
+      "coverage": 0.02708716793494684,
+      "accuracy": 0.6206896551724138,
+      "balanced_accuracy": 0.4325348696179503,
+      "predicted_event_rows": 193,
+      "predicted_event_share": 0.19574036511156187,
+      "event_precision": 0.7927461139896373,
+      "direction_accuracy": 0.5595854922279793
+    },
+    {
+      "minimum_confidence": 0.55,
+      "rows": 64,
+      "coverage": 0.0017581934562237301,
+      "accuracy": 0.765625,
+      "balanced_accuracy": 0.578494623655914,
+      "predicted_event_rows": 40,
+      "predicted_event_share": 0.625,
+      "event_precision": 0.875,
+      "direction_accuracy": 0.725
+    },
+    {
+      "minimum_confidence": 0.6,
+      "rows": 2,
+      "coverage": 5.494354550699157e-05,
+      "accuracy": 1.0,
+      "balanced_accuracy": 1.0,
+      "predicted_event_rows": 2,
+      "predicted_event_share": 1.0,
+      "event_precision": 1.0,
+      "direction_accuracy": 1.0
+    }
+  ],
+  "expectancy_buckets": [
+    {
+      "bucket": 0,
+      "rows": 3641,
+      "predicted_mean": -1.2024009532904085,
+      "actual_mean_return_bps": -3.5007472932420565,
+      "actual_median_return_bps": -4.050222873687744,
+      "positive_return_rate": 0.39082669596264763,
+      "negative_return_rate": 0.576489975281516
+    },
+    {
+      "bucket": 1,
+      "rows": 3640,
+      "predicted_mean": -0.767806724418071,
+      "actual_mean_return_bps": -0.9090796082229404,
+      "actual_median_return_bps": -2.5898351669311523,
+      "positive_return_rate": 0.43653846153846154,
+      "negative_return_rate": 0.5354395604395604
+    },
+    {
+      "bucket": 2,
+      "rows": 3640,
+      "predicted_mean": -0.548322552207486,
+      "actual_mean_return_bps": -0.08656709934328939,
+      "actual_median_return_bps": -1.3409327268600464,
+      "positive_return_rate": 0.4431318681318681,
+      "negative_return_rate": 0.5184065934065935
+    },
+    {
+      "bucket": 3,
+      "rows": 3640,
+      "predicted_mean": -0.38420906982621067,
+      "actual_mean_return_bps": 0.16892596329306508,
+      "actual_median_return_bps": 0.0,
+      "positive_return_rate": 0.47527472527472525,
+      "negative_return_rate": 0.4848901098901099
+    },
+    {
+      "bucket": 4,
+      "rows": 3640,
+      "predicted_mean": -0.23035357607092438,
+      "actual_mean_return_bps": 0.15279030911215058,
+      "actual_median_return_bps": 0.0,
+      "positive_return_rate": 0.4653846153846154,
+      "negative_return_rate": 0.49615384615384617
+    },
+    {
+      "bucket": 5,
+      "rows": 3640,
+      "predicted_mean": -0.08596868415412076,
+      "actual_mean_return_bps": 0.4052419520668931,
+      "actual_median_return_bps": 0.0,
+      "positive_return_rate": 0.4997252747252747,
+      "negative_return_rate": 0.46373626373626375
+    },
+    {
+      "bucket": 6,
+      "rows": 3640,
+      "predicted_mean": 0.05922966244784971,
+      "actual_mean_return_bps": 0.3842347366141749,
+      "actual_median_return_bps": 1.2813120484352112,
+      "positive_return_rate": 0.5016483516483516,
+      "negative_return_rate": 0.4634615384615385
+    },
+    {
+      "bucket": 7,
+      "rows": 3640,
+      "predicted_mean": 0.22774468598578132,
+      "actual_mean_return_bps": 0.24417929708302677,
+      "actual_median_return_bps": 1.2909889221191406,
+      "positive_return_rate": 0.5076923076923077,
+      "negative_return_rate": 0.4532967032967033
+    },
+    {
+      "bucket": 8,
+      "rows": 3640,
+      "predicted_mean": 0.46593993352086904,
+      "actual_mean_return_bps": -0.7387666490379271,
+      "actual_median_return_bps": 1.3170892596244812,
+      "positive_return_rate": 0.5076923076923077,
+      "negative_return_rate": 0.46181318681318684
+    },
+    {
+      "bucket": 9,
+      "rows": 3640,
+      "predicted_mean": 1.140619400487008,
+      "actual_mean_return_bps": 1.9291894203686453,
+      "actual_median_return_bps": 2.7127840518951416,
+      "positive_return_rate": 0.5461538461538461,
+      "negative_return_rate": 0.4225274725274725
+    }
+  ],
+  "tree_count": 112,
+  "elapsed_seconds": 6.947709321975708
+}

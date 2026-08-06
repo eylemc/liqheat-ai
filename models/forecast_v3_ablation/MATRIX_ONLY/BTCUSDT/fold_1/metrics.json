@@ -1,0 +1,203 @@
+{
+  "experiment": "MATRIX_ONLY",
+  "symbol": "BTCUSDT",
+  "fold": "fold_1",
+  "feature_count": 96,
+  "neutral_threshold_bps": 5.652835369110107,
+  "train_rows": 72509,
+  "validation_rows": 18128,
+  "test_rows": 27191,
+  "train_start": "2026-03-30T07:35:36.806644+00:00",
+  "train_end": "2026-05-21T07:49:02.835087+00:00",
+  "test_start": "2026-06-02T22:03:03.268908+00:00",
+  "test_end": "2026-06-21T19:17:02.308785+00:00",
+  "accuracy": 0.4043249604648597,
+  "balanced_accuracy": 0.38952210369187906,
+  "macro_f1": 0.38959721640435596,
+  "event_precision": 0.768249780123131,
+  "event_recall": 0.867686500447005,
+  "event_f1": 0.814946121192331,
+  "event_direction_accuracy": 0.40488126649076517,
+  "expectancy_pearson": 0.04048414994405167,
+  "expectancy_spearman": 0.06037122413362148,
+  "expectancy_sign_accuracy": 0.5297341031959104,
+  "confusion_matrix": [
+    [
+      4330,
+      1236,
+      4620
+    ],
+    [
+      2670,
+      1787,
+      2600
+    ],
+    [
+      3643,
+      1428,
+      4877
+    ]
+  ],
+  "classification_report": {
+    "DOWN": {
+      "precision": 0.4068401766419243,
+      "recall": 0.42509326526605146,
+      "f1-score": 0.415766479427721,
+      "support": 10186.0
+    },
+    "NEUTRAL": {
+      "precision": 0.4014828128510447,
+      "recall": 0.2532237494686127,
+      "f1-score": 0.3105665623913799,
+      "support": 7057.0
+    },
+    "UP": {
+      "precision": 0.4031578077209225,
+      "recall": 0.4902492963409731,
+      "f1-score": 0.44245860739396686,
+      "support": 9948.0
+    },
+    "accuracy": 0.4043249604648597,
+    "macro avg": {
+      "precision": 0.40382693240463047,
+      "recall": 0.38952210369187906,
+      "f1-score": 0.38959721640435596,
+      "support": 27191.0
+    },
+    "weighted avg": {
+      "precision": 0.404102538368291,
+      "recall": 0.4043249604648597,
+      "f1-score": 0.39822896607708125,
+      "support": 27191.0
+    }
+  },
+  "confidence_thresholds": [
+    {
+      "minimum_confidence": 0.5,
+      "rows": 702,
+      "coverage": 0.0258173660402339,
+      "accuracy": 0.4188034188034188,
+      "balanced_accuracy": 0.4364459077646541,
+      "predicted_event_rows": 504,
+      "predicted_event_share": 0.717948717948718,
+      "event_precision": 0.7599206349206349,
+      "direction_accuracy": 0.37103174603174605
+    },
+    {
+      "minimum_confidence": 0.55,
+      "rows": 147,
+      "coverage": 0.005406200581074621,
+      "accuracy": 0.2585034013605442,
+      "balanced_accuracy": 0.35434343434343435,
+      "predicted_event_rows": 139,
+      "predicted_event_share": 0.9455782312925171,
+      "event_precision": 0.7266187050359713,
+      "direction_accuracy": 0.2302158273381295
+    },
+    {
+      "minimum_confidence": 0.6,
+      "rows": 1,
+      "coverage": 3.677687470118789e-05,
+      "accuracy": 0.0,
+      "balanced_accuracy": 0.0,
+      "predicted_event_rows": 1,
+      "predicted_event_share": 1.0,
+      "event_precision": 1.0,
+      "direction_accuracy": 0.0
+    }
+  ],
+  "expectancy_buckets": [
+    {
+      "bucket": 0,
+      "rows": 2720,
+      "predicted_mean": -0.9136604566982092,
+      "actual_mean_return_bps": -2.734276140375775,
+      "actual_median_return_bps": -2.7435883283615112,
+      "positive_return_rate": 0.42683823529411763,
+      "negative_return_rate": 0.5731617647058823
+    },
+    {
+      "bucket": 1,
+      "rows": 2719,
+      "predicted_mean": -0.5052153631610702,
+      "actual_mean_return_bps": 0.5958491692681903,
+      "actual_median_return_bps": -1.300551176071167,
+      "positive_return_rate": 0.46781905112173594,
+      "negative_return_rate": 0.5321809488782641
+    },
+    {
+      "bucket": 2,
+      "rows": 2719,
+      "predicted_mean": -0.307443479376381,
+      "actual_mean_return_bps": -0.7223569317876679,
+      "actual_median_return_bps": -1.062728762626648,
+      "positive_return_rate": 0.47591026112541374,
+      "negative_return_rate": 0.5233541743287974
+    },
+    {
+      "bucket": 3,
+      "rows": 2719,
+      "predicted_mean": -0.14978120056382854,
+      "actual_mean_return_bps": -2.154842911909138,
+      "actual_median_return_bps": -1.3226195573806763,
+      "positive_return_rate": 0.46230231702831925,
+      "negative_return_rate": 0.5376976829716807
+    },
+    {
+      "bucket": 4,
+      "rows": 2720,
+      "predicted_mean": -0.013427802285043337,
+      "actual_mean_return_bps": -1.0488959009050365,
+      "actual_median_return_bps": -0.5377943515777588,
+      "positive_return_rate": 0.4863970588235294,
+      "negative_return_rate": 0.513235294117647
+    },
+    {
+      "bucket": 5,
+      "rows": 2718,
+      "predicted_mean": 0.12485683796127826,
+      "actual_mean_return_bps": -0.8394125761838412,
+      "actual_median_return_bps": 0.0644603818655014,
+      "positive_return_rate": 0.5018395879323032,
+      "negative_return_rate": 0.4977924944812362
+    },
+    {
+      "bucket": 6,
+      "rows": 2719,
+      "predicted_mean": 0.26483614046237586,
+      "actual_mean_return_bps": -1.0763498992926663,
+      "actual_median_return_bps": -0.1898217499256134,
+      "positive_return_rate": 0.4968738506803972,
+      "negative_return_rate": 0.5027583670467084
+    },
+    {
+      "bucket": 7,
+      "rows": 2719,
+      "predicted_mean": 0.4160567862903006,
+      "actual_mean_return_bps": 1.0581521000675433,
+      "actual_median_return_bps": 1.3093547821044922,
+      "positive_return_rate": 0.5281353438764251,
+      "negative_return_rate": 0.47186465612357487
+    },
+    {
+      "bucket": 8,
+      "rows": 2720,
+      "predicted_mean": 0.6114826662414272,
+      "actual_mean_return_bps": 1.9548153429117519,
+      "actual_median_return_bps": 1.9867576360702515,
+      "positive_return_rate": 0.5397058823529411,
+      "negative_return_rate": 0.4602941176470588
+    },
+    {
+      "bucket": 9,
+      "rows": 2718,
+      "predicted_mean": 1.0001279972467472,
+      "actual_mean_return_bps": 2.7402761610083672,
+      "actual_median_return_bps": 3.19024121761322,
+      "positive_return_rate": 0.5529801324503312,
+      "negative_return_rate": 0.4470198675496689
+    }
+  ],
+  "tree_count": 117,
+  "elapsed_seconds": 1.9848785400390625
+}

@@ -1,0 +1,16 @@
+{
+  "engine": "liqheat-forecast-v2",
+  "symbol": "BTCUSDT",
+  "horizon_minutes": 15,
+  "neutral_threshold_bps": 6.0678242444992065,
+  "neutral_quantile": 0.35,
+  "train_rows": 163146,
+  "validation_rows": 18128,
+  "train_start": "2026-03-30T07:35:36.806644+00:00",
+  "train_end": "2026-07-23T07:33:02.642730+00:00",
+  "validation_start": "2026-07-23T07:34:02.752936+00:00",
+  "validation_end": "2026-08-04T22:23:02.433365+00:00",
+  "feature_count": 443,
+  "direction_trees": 264,
+  "magnitude_trees": 287
+}
