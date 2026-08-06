@@ -6,7 +6,7 @@
   // Directional outcomes are only meaningful when the combined Radar Score
   // reaches a minimum opportunity-quality threshold. Below this level the UI
   // must honestly display UNCONFIRMED, regardless of raw topology direction.
-  const MIN_DIRECTIONAL_RADAR_SCORE = 60;
+  const MIN_DIRECTIONAL_RADAR_SCORE = 40;
 
   // The backend refreshes roughly every 75 seconds while the UI polls every
   // 15 seconds. Confirmations therefore count only distinct backend snapshots,
