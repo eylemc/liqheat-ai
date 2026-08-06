@@ -1,0 +1,10 @@
+{
+  "version": "squeeze-v1",
+  "rows": 32904,
+  "feature_count": 43,
+  "classes": [
+    -1,
+    0,
+    1
+  ]
+}
