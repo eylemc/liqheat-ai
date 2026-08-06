@@ -244,6 +244,16 @@ def join_matrix(topology: pd.DataFrame, matrix: pd.DataFrame) -> pd.DataFrame:
     pieces = []
     for sym, t in topology.groupby("symbol", sort=False):
         m = matrix[matrix["symbol"] == sym].copy()
+
+        t["logged_at"] = (
+            pd.to_datetime(t["logged_at"], utc=True)
+            .astype("datetime64[ns, UTC]")
+        )
+        m["available_at"] = (
+            pd.to_datetime(m["available_at"], utc=True)
+            .astype("datetime64[ns, UTC]")
+        )
+
         t = t.sort_values("logged_at").copy()
         m = m.sort_values("available_at").copy()
         joined = pd.merge_asof(
