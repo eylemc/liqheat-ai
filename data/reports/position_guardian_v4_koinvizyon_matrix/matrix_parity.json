@@ -1,0 +1,11 @@
+{
+  "BTCUSDT": {
+    "available": true,
+    "rows_compared": 3112,
+    "trend_match_rate": 1.0,
+    "flip_match_rate": 0.9845758354755784,
+    "vwma_max_abs_diff": 0.0,
+    "upper_max_abs_diff": 0.0,
+    "lower_max_abs_diff": 0.0
+  }
+}
