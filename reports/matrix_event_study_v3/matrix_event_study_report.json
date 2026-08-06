@@ -1,0 +1,79 @@
+{
+  "status": "complete",
+  "engine": "koinvizyon-matrix-delayed-opportunity-event-study-v3",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "market": "Binance USD-M Futures",
+  "start_time": "2025-08-06T00:00:00+00:00",
+  "end_time": "2026-08-06T17:17:00+00:00",
+  "matrix": {
+    "ma_type": "VWMA",
+    "length": 20,
+    "source": "OHLC4",
+    "signal_source": "OHLC4"
+  },
+  "entry_timeframes": [
+    "1m",
+    "5m",
+    "15m",
+    "1h"
+  ],
+  "alignment_levels": [
+    "DAILY_ONLY",
+    "DAILY_4H",
+    "DAILY_4H_1H",
+    "DAILY_4H_1H_15M",
+    "FULL_ALIGNMENT"
+  ],
+  "opportunity_windows_minutes": [
+    15,
+    30,
+    60,
+    120,
+    240
+  ],
+  "target_levels_bps": [
+    10,
+    25,
+    50,
+    75,
+    100,
+    150,
+    200
+  ],
+  "first_hit_pairs": [
+    [
+      25,
+      25
+    ],
+    [
+      50,
+      25
+    ],
+    [
+      50,
+      50
+    ],
+    [
+      100,
+      50
+    ],
+    [
+      100,
+      100
+    ]
+  ],
+  "event_rows": 71232,
+  "summary_rows": 400,
+  "elapsed_seconds": 43.544,
+  "generated_at": "2026-08-06T17:19:20.591362+00:00",
+  "outputs": {
+    "events": "reports/matrix_event_study_v3/matrix_event_observations.parquet",
+    "summary": "reports/matrix_event_study_v3/matrix_event_summary.csv",
+    "compact_summary": "reports/matrix_event_study_v3/matrix_event_compact_summary.csv",
+    "best_results": "reports/matrix_event_study_v3/matrix_event_best_results.csv"
+  }
+}

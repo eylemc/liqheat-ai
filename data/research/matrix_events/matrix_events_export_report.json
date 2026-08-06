@@ -1,0 +1,33 @@
+{
+  "status": "complete",
+  "input": "reports/matrix_event_study_v3/matrix_event_observations.parquet",
+  "rows": 71232,
+  "full_columns": 182,
+  "compact_columns": 142,
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "entry_timeframes": [
+    "15m",
+    "1h",
+    "1m",
+    "5m"
+  ],
+  "alignments": [
+    "DAILY_4H",
+    "DAILY_4H_1H",
+    "DAILY_4H_1H_15M",
+    "DAILY_ONLY",
+    "FULL_ALIGNMENT"
+  ],
+  "minimum_signal_time": "2025-09-15T00:05:59.999000+00:00",
+  "maximum_signal_time": "2026-08-06T12:54:59.999000+00:00",
+  "outputs": {
+    "full_csv_gzip": "data/research/matrix_events/matrix_events_full.csv.gz",
+    "compact_csv_gzip": "data/research/matrix_events/matrix_events_compact.csv.gz",
+    "pooled_summary_csv": "data/research/matrix_events/matrix_events_summary.csv",
+    "symbol_summary_csv": "data/research/matrix_events/matrix_events_symbol_summary.csv"
+  }
+}
