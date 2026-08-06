@@ -65,7 +65,6 @@
     let pending = previous.pending || null;
     let confirmations = Number(previous.confirmations || 0);
 
-    // Neutral zone: do not force a direction when the model itself is unsure.
     if (evidence.confidence < HOLD_CONFIDENCE) {
       outcome = "NEUTRAL";
       pending = null;
@@ -92,8 +91,6 @@
       pending = null;
       confirmations = 0;
     } else if (evidence.confidence >= REVERSE_CONFIDENCE) {
-      // Hysteresis: an established direction needs stronger and repeated
-      // opposite evidence before it may reverse.
       if (pending === evidence.candidate) {
         confirmations += 1;
       } else {
@@ -109,8 +106,6 @@
         outcome = "NEUTRAL";
       }
     } else {
-      // Opposite evidence exists, but it is not strong enough to flip.
-      // Show honest uncertainty instead of oscillating UP/DOWN.
       outcome = "NEUTRAL";
       pending = null;
       confirmations = 0;
@@ -204,4 +199,50 @@
       return response;
     }
   };
+})();
+
+(() => {
+  "use strict";
+
+  const STYLE_ID = "matrixSignalLabelStyles";
+
+  function installStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = `
+      .matrix-signals-label {
+        display: block;
+        margin: 2px 0 8px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function addLabels() {
+    document.querySelectorAll(".radar-card .matrix-strip").forEach((strip) => {
+      const previous = strip.previousElementSibling;
+      if (previous?.classList.contains("matrix-signals-label")) return;
+
+      const label = document.createElement("span");
+      label.className = "matrix-signals-label";
+      label.textContent = "Matrix Signals";
+      strip.parentNode.insertBefore(label, strip);
+    });
+  }
+
+  installStyles();
+  addLabels();
+
+  const observer = new MutationObserver(addLabels);
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
 })();
