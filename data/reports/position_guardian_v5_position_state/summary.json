@@ -1,0 +1,2579 @@
+{
+  "status": "research_only",
+  "question": "For an already-open position, is HOLD or EXIT better from now?",
+  "action_codes": {
+    "0": "EXIT_BETTER",
+    "1": "NO_CLEAR_EDGE",
+    "2": "HOLD_BETTER"
+  },
+  "matrix_parity": {
+    "BTCUSDT": {
+      "available": true,
+      "rows_compared": 3112,
+      "trend_match_rate": 1.0,
+      "flip_match_rate": 0.9845758354755784,
+      "vwma_max_abs_diff": 0.0,
+      "upper_max_abs_diff": 0.0,
+      "lower_max_abs_diff": 0.0
+    }
+  },
+  "entry_ages_minutes": [
+    15,
+    30,
+    60,
+    120,
+    240
+  ],
+  "feature_groups": {
+    "position_only": 11,
+    "position_plus_topology": 68,
+    "position_plus_matrix": 32,
+    "full_position_matrix_topology": 89
+  },
+  "reports": [
+    {
+      "side": "LONG",
+      "horizon_minutes": 15,
+      "entry_ages_minutes": [
+        15,
+        30,
+        60,
+        120,
+        240
+      ],
+      "label_definition": {
+        "HOLD_BETTER": "future endpoint >= +8.0 bps or MFE >= 12.0 bps without MAE <= -15.0 bps",
+        "EXIT_BETTER": "future endpoint <= -8.0 bps or MAE <= -15.0 bps without recovery",
+        "NO_CLEAR_EDGE": "both/neither condition"
+      },
+      "split": {
+        "train_end": "2026-06-28T02:45:03.552826+00:00",
+        "validation_start": "2026-06-28T06:45:16.659408896+00:00",
+        "test_start": "2026-07-17T09:45:02.965754112+00:00",
+        "test_end": "2026-08-05T03:30:19.905113+00:00"
+      },
+      "counts": {
+        "dataset": 92017,
+        "train": 64297,
+        "validation": 13695,
+        "test": 13800,
+        "test_classes": {
+          "NO_CLEAR_EDGE": 6375,
+          "HOLD_BETTER": 3890,
+          "EXIT_BETTER": 3535
+        }
+      },
+      "ablation": [
+        {
+          "feature_group": "position_only",
+          "feature_count": 11,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.40833334096730417,
+            "macro_f1": 0.40824999287960967,
+            "log_loss": 1.0777381093232872,
+            "confusion_matrix": [
+              [
+                1749,
+                1284,
+                1392
+              ],
+              [
+                1348,
+                2183,
+                1249
+              ],
+              [
+                1502,
+                1313,
+                1675
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4425,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4490
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.3930648232177563,
+            "macro_f1": 0.39257841520417386,
+            "log_loss": 1.0835398263307516,
+            "confusion_matrix": [
+              [
+                1189,
+                1191,
+                1155
+              ],
+              [
+                1513,
+                3223,
+                1639
+              ],
+              [
+                1230,
+                1348,
+                1312
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3535,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3890
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 180,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.290491118077325,
+            "log_loss": 0.7656982960225454,
+            "confusion_matrix": [
+              [
+                0,
+                19,
+                0
+              ],
+              [
+                0,
+                139,
+                0
+              ],
+              [
+                0,
+                22,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 19,
+              "NO_CLEAR_EDGE": 139,
+              "HOLD_BETTER": 22
+            },
+            "coverage": 0.013043478260869565,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_15m/position_only.cbm"
+        },
+        {
+          "feature_group": "position_plus_topology",
+          "feature_count": 68,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.4262265654426709,
+            "macro_f1": 0.42604491708720643,
+            "log_loss": 1.0682340813204965,
+            "confusion_matrix": [
+              [
+                2000,
+                1090,
+                1335
+              ],
+              [
+                1362,
+                2161,
+                1257
+              ],
+              [
+                1663,
+                1145,
+                1682
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4425,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4490
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.41021327570963223,
+            "macro_f1": 0.40879634522215386,
+            "log_loss": 1.0542820290537507,
+            "confusion_matrix": [
+              [
+                1338,
+                1168,
+                1029
+              ],
+              [
+                1580,
+                3474,
+                1321
+              ],
+              [
+                1298,
+                1397,
+                1195
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3535,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3890
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 1165,
+            "balanced_accuracy": 0.34291332247098344,
+            "macro_f1": 0.31317556790169493,
+            "log_loss": 0.7491247879548569,
+            "confusion_matrix": [
+              [
+                5,
+                141,
+                0
+              ],
+              [
+                5,
+                903,
+                0
+              ],
+              [
+                0,
+                111,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 146,
+              "NO_CLEAR_EDGE": 908,
+              "HOLD_BETTER": 111
+            },
+            "coverage": 0.08442028985507247,
+            "precision_exit_better": 0.5,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_15m/position_plus_topology.cbm"
+        },
+        {
+          "feature_group": "position_plus_matrix",
+          "feature_count": 32,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.402064027745114,
+            "macro_f1": 0.40135895249363635,
+            "log_loss": 1.0803228899182695,
+            "confusion_matrix": [
+              [
+                1983,
+                1044,
+                1398
+              ],
+              [
+                1683,
+                1802,
+                1295
+              ],
+              [
+                1737,
+                1042,
+                1711
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4425,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4490
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.39139380223909503,
+            "macro_f1": 0.3903976399725458,
+            "log_loss": 1.0838042688498115,
+            "confusion_matrix": [
+              [
+                1249,
+                1255,
+                1031
+              ],
+              [
+                1761,
+                3191,
+                1423
+              ],
+              [
+                1190,
+                1454,
+                1246
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3535,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3890
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 91,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.24537037037037038,
+            "log_loss": 0.9852057629690153,
+            "confusion_matrix": [
+              [
+                0,
+                19,
+                0
+              ],
+              [
+                0,
+                53,
+                0
+              ],
+              [
+                0,
+                19,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 19,
+              "NO_CLEAR_EDGE": 53,
+              "HOLD_BETTER": 19
+            },
+            "coverage": 0.006594202898550725,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_15m/position_plus_matrix.cbm"
+        },
+        {
+          "feature_group": "full_position_matrix_topology",
+          "feature_count": 89,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.4312025436180083,
+            "macro_f1": 0.4306174754200754,
+            "log_loss": 1.0634077960425639,
+            "confusion_matrix": [
+              [
+                2076,
+                1117,
+                1232
+              ],
+              [
+                1416,
+                2146,
+                1218
+              ],
+              [
+                1697,
+                1107,
+                1686
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4425,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4490
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.41290407411914853,
+            "macro_f1": 0.41174595591989854,
+            "log_loss": 1.0493864878997587,
+            "confusion_matrix": [
+              [
+                1242,
+                1306,
+                987
+              ],
+              [
+                1407,
+                3792,
+                1176
+              ],
+              [
+                1152,
+                1600,
+                1138
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3535,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3890
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 1366,
+            "balanced_accuracy": 0.3698787251222028,
+            "macro_f1": 0.3587273740287327,
+            "log_loss": 0.783715963390893,
+            "confusion_matrix": [
+              [
+                5,
+                144,
+                9
+              ],
+              [
+                15,
+                999,
+                0
+              ],
+              [
+                10,
+                166,
+                18
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 158,
+              "NO_CLEAR_EDGE": 1014,
+              "HOLD_BETTER": 194
+            },
+            "coverage": 0.09898550724637681,
+            "precision_exit_better": 0.16666666666666666,
+            "precision_hold_better": 0.6666666666666666
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_15m/full_position_matrix_topology.cbm"
+        }
+      ],
+      "best_feature_group_by_test_macro_f1_research_only": "full_position_matrix_topology"
+    },
+    {
+      "side": "LONG",
+      "horizon_minutes": 30,
+      "entry_ages_minutes": [
+        15,
+        30,
+        60,
+        120,
+        240
+      ],
+      "label_definition": {
+        "HOLD_BETTER": "future endpoint >= +8.0 bps or MFE >= 12.0 bps without MAE <= -15.0 bps",
+        "EXIT_BETTER": "future endpoint <= -8.0 bps or MAE <= -15.0 bps without recovery",
+        "NO_CLEAR_EDGE": "both/neither condition"
+      },
+      "split": {
+        "train_end": "2026-06-27T17:15:08.536680+00:00",
+        "validation_start": "2026-06-27T21:15:11.316113920+00:00",
+        "test_start": "2026-07-16T23:15:03.450344960+00:00",
+        "test_end": "2026-08-05T03:30:19.905113+00:00"
+      },
+      "counts": {
+        "dataset": 183157,
+        "train": 127972,
+        "validation": 27240,
+        "test": 27475,
+        "test_classes": {
+          "NO_CLEAR_EDGE": 10395,
+          "HOLD_BETTER": 8590,
+          "EXIT_BETTER": 8490
+        }
+      },
+      "ablation": [
+        {
+          "feature_group": "position_only",
+          "feature_count": 11,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.4013131655633608,
+            "macro_f1": 0.40021733019237665,
+            "log_loss": 1.0712628176002346,
+            "confusion_matrix": [
+              [
+                3930,
+                2539,
+                3436
+              ],
+              [
+                2188,
+                3012,
+                2225
+              ],
+              [
+                3500,
+                2431,
+                3979
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9905,
+              "NO_CLEAR_EDGE": 7425,
+              "HOLD_BETTER": 9910
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.40329381823737304,
+            "macro_f1": 0.40325157852755816,
+            "log_loss": 1.0797034213049725,
+            "confusion_matrix": [
+              [
+                2988,
+                2581,
+                2921
+              ],
+              [
+                2481,
+                5087,
+                2827
+              ],
+              [
+                2613,
+                2811,
+                3166
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8490,
+              "NO_CLEAR_EDGE": 10395,
+              "HOLD_BETTER": 8590
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 423,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.27554322699953765,
+            "log_loss": 0.8346564622471263,
+            "confusion_matrix": [
+              [
+                0,
+                60,
+                0
+              ],
+              [
+                0,
+                298,
+                0
+              ],
+              [
+                0,
+                65,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 60,
+              "NO_CLEAR_EDGE": 298,
+              "HOLD_BETTER": 65
+            },
+            "coverage": 0.015395814376706096,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_30m/position_only.cbm"
+        },
+        {
+          "feature_group": "position_plus_topology",
+          "feature_count": 68,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.4053857448673217,
+            "macro_f1": 0.4028613223978264,
+            "log_loss": 1.0670640702453391,
+            "confusion_matrix": [
+              [
+                4571,
+                2383,
+                2951
+              ],
+              [
+                2431,
+                3077,
+                1917
+              ],
+              [
+                4137,
+                2401,
+                3372
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9905,
+              "NO_CLEAR_EDGE": 7425,
+              "HOLD_BETTER": 9910
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.4244591086964022,
+            "macro_f1": 0.4230646744163484,
+            "log_loss": 1.054598149748058,
+            "confusion_matrix": [
+              [
+                3392,
+                2652,
+                2446
+              ],
+              [
+                2456,
+                5636,
+                2303
+              ],
+              [
+                2873,
+                2868,
+                2849
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8490,
+              "NO_CLEAR_EDGE": 10395,
+              "HOLD_BETTER": 8590
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2971,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.27623365529929694,
+            "log_loss": 0.824070088086634,
+            "confusion_matrix": [
+              [
+                0,
+                405,
+                0
+              ],
+              [
+                0,
+                2102,
+                0
+              ],
+              [
+                0,
+                464,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 405,
+              "NO_CLEAR_EDGE": 2102,
+              "HOLD_BETTER": 464
+            },
+            "coverage": 0.10813466787989082,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_30m/position_plus_topology.cbm"
+        },
+        {
+          "feature_group": "position_plus_matrix",
+          "feature_count": 32,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.40087669374223633,
+            "macro_f1": 0.40082852944315955,
+            "log_loss": 1.0701276375811186,
+            "confusion_matrix": [
+              [
+                4105,
+                2251,
+                3549
+              ],
+              [
+                2326,
+                2964,
+                2135
+              ],
+              [
+                3853,
+                2202,
+                3855
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9905,
+              "NO_CLEAR_EDGE": 7425,
+              "HOLD_BETTER": 9910
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.39447330222425486,
+            "macro_f1": 0.39248739192313553,
+            "log_loss": 1.0816574732463093,
+            "confusion_matrix": [
+              [
+                2581,
+                3203,
+                2706
+              ],
+              [
+                2367,
+                5447,
+                2581
+              ],
+              [
+                2157,
+                3380,
+                3053
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8490,
+              "NO_CLEAR_EDGE": 10395,
+              "HOLD_BETTER": 8590
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 391,
+            "balanced_accuracy": 0.34385964912280703,
+            "macro_f1": 0.2685203531250688,
+            "log_loss": 0.9626203693253514,
+            "confusion_matrix": [
+              [
+                3,
+                92,
+                0
+              ],
+              [
+                0,
+                230,
+                0
+              ],
+              [
+                0,
+                66,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 95,
+              "NO_CLEAR_EDGE": 230,
+              "HOLD_BETTER": 66
+            },
+            "coverage": 0.014231119199272066,
+            "precision_exit_better": 1.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_30m/position_plus_matrix.cbm"
+        },
+        {
+          "feature_group": "full_position_matrix_topology",
+          "feature_count": 89,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.41241415828428024,
+            "macro_f1": 0.40847143508183265,
+            "log_loss": 1.0648497411053386,
+            "confusion_matrix": [
+              [
+                4504,
+                2572,
+                2829
+              ],
+              [
+                2195,
+                3316,
+                1914
+              ],
+              [
+                4129,
+                2452,
+                3329
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9905,
+              "NO_CLEAR_EDGE": 7425,
+              "HOLD_BETTER": 9910
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.4181197076099111,
+            "macro_f1": 0.41323905596005256,
+            "log_loss": 1.0533453017662502,
+            "confusion_matrix": [
+              [
+                2921,
+                3185,
+                2384
+              ],
+              [
+                2123,
+                6303,
+                1969
+              ],
+              [
+                2571,
+                3408,
+                2611
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8490,
+              "NO_CLEAR_EDGE": 10395,
+              "HOLD_BETTER": 8590
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2715,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.27767032022351174,
+            "log_loss": 0.8251654564853088,
+            "confusion_matrix": [
+              [
+                0,
+                348,
+                0
+              ],
+              [
+                0,
+                1938,
+                0
+              ],
+              [
+                0,
+                429,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 348,
+              "NO_CLEAR_EDGE": 1938,
+              "HOLD_BETTER": 429
+            },
+            "coverage": 0.09881710646041857,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_30m/full_position_matrix_topology.cbm"
+        }
+      ],
+      "best_feature_group_by_test_macro_f1_research_only": "position_plus_topology"
+    },
+    {
+      "side": "LONG",
+      "horizon_minutes": 60,
+      "entry_ages_minutes": [
+        15,
+        30,
+        60,
+        120,
+        240
+      ],
+      "label_definition": {
+        "HOLD_BETTER": "future endpoint >= +8.0 bps or MFE >= 12.0 bps without MAE <= -15.0 bps",
+        "EXIT_BETTER": "future endpoint <= -8.0 bps or MAE <= -15.0 bps without recovery",
+        "NO_CLEAR_EDGE": "both/neither condition"
+      },
+      "split": {
+        "train_end": "2026-06-27T16:45:02.714075+00:00",
+        "validation_start": "2026-06-27T20:45:04.047523584+00:00",
+        "test_start": "2026-07-16T22:46:46.991908352+00:00",
+        "test_end": "2026-08-05T03:30:19.905113+00:00"
+      },
+      "counts": {
+        "dataset": 183267,
+        "train": 128047,
+        "validation": 27250,
+        "test": 27490,
+        "test_classes": {
+          "HOLD_BETTER": 11610,
+          "EXIT_BETTER": 10700,
+          "NO_CLEAR_EDGE": 5180
+        }
+      },
+      "ablation": [
+        {
+          "feature_group": "position_only",
+          "feature_count": 11,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.4044028379797722,
+            "macro_f1": 0.37467006001799347,
+            "log_loss": 1.0490204498229159,
+            "confusion_matrix": [
+              [
+                4235,
+                2898,
+                4377
+              ],
+              [
+                931,
+                1374,
+                950
+              ],
+              [
+                4159,
+                3043,
+                5283
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11510,
+              "NO_CLEAR_EDGE": 3255,
+              "HOLD_BETTER": 12485
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.4253667194274309,
+            "macro_f1": 0.3942861405649944,
+            "log_loss": 1.0634938454646612,
+            "confusion_matrix": [
+              [
+                3336,
+                3356,
+                4008
+              ],
+              [
+                915,
+                2900,
+                1365
+              ],
+              [
+                3025,
+                3889,
+                4696
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10700,
+              "NO_CLEAR_EDGE": 5180,
+              "HOLD_BETTER": 11610
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 280,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.22950819672131148,
+            "log_loss": 1.0230623019381628,
+            "confusion_matrix": [
+              [
+                0,
+                62,
+                0
+              ],
+              [
+                0,
+                147,
+                0
+              ],
+              [
+                0,
+                71,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 62,
+              "NO_CLEAR_EDGE": 147,
+              "HOLD_BETTER": 71
+            },
+            "coverage": 0.01018552200800291,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_60m/position_only.cbm"
+        },
+        {
+          "feature_group": "position_plus_topology",
+          "feature_count": 68,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.4086561874616994,
+            "macro_f1": 0.38375967143884987,
+            "log_loss": 1.0451812143380768,
+            "confusion_matrix": [
+              [
+                5790,
+                2143,
+                3577
+              ],
+              [
+                1235,
+                1267,
+                753
+              ],
+              [
+                6010,
+                2309,
+                4166
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11510,
+              "NO_CLEAR_EDGE": 3255,
+              "HOLD_BETTER": 12485
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.45780466590725233,
+            "macro_f1": 0.43018296659357974,
+            "log_loss": 1.0497158330392304,
+            "confusion_matrix": [
+              [
+                5282,
+                2597,
+                2821
+              ],
+              [
+                1284,
+                2864,
+                1032
+              ],
+              [
+                4588,
+                3227,
+                3795
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10700,
+              "NO_CLEAR_EDGE": 5180,
+              "HOLD_BETTER": 11610
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2580,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.22450728363324765,
+            "log_loss": 1.0403858987282975,
+            "confusion_matrix": [
+              [
+                0,
+                549,
+                0
+              ],
+              [
+                0,
+                1310,
+                0
+              ],
+              [
+                0,
+                721,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 549,
+              "NO_CLEAR_EDGE": 1310,
+              "HOLD_BETTER": 721
+            },
+            "coverage": 0.09385230993088396,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_60m/position_plus_topology.cbm"
+        },
+        {
+          "feature_group": "position_plus_matrix",
+          "feature_count": 32,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.4004761087001576,
+            "macro_f1": 0.3781712494227763,
+            "log_loss": 1.0542615556901695,
+            "confusion_matrix": [
+              [
+                4625,
+                2532,
+                4353
+              ],
+              [
+                1050,
+                1253,
+                952
+              ],
+              [
+                4857,
+                2451,
+                5177
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11510,
+              "NO_CLEAR_EDGE": 3255,
+              "HOLD_BETTER": 12485
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.39514164810114966,
+            "macro_f1": 0.3676885522289524,
+            "log_loss": 1.0843698743354298,
+            "confusion_matrix": [
+              [
+                2950,
+                3684,
+                4066
+              ],
+              [
+                1247,
+                2602,
+                1331
+              ],
+              [
+                2686,
+                4194,
+                4730
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10700,
+              "NO_CLEAR_EDGE": 5180,
+              "HOLD_BETTER": 11610
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 179,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.1455604075691412,
+            "log_loss": 1.2673943754341153,
+            "confusion_matrix": [
+              [
+                0,
+                63,
+                0
+              ],
+              [
+                0,
+                50,
+                0
+              ],
+              [
+                0,
+                66,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 63,
+              "NO_CLEAR_EDGE": 50,
+              "HOLD_BETTER": 66
+            },
+            "coverage": 0.006511458712259003,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_60m/position_plus_matrix.cbm"
+        },
+        {
+          "feature_group": "full_position_matrix_topology",
+          "feature_count": 89,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.406395696418484,
+            "macro_f1": 0.38382921873632503,
+            "log_loss": 1.0403216726041968,
+            "confusion_matrix": [
+              [
+                5302,
+                2282,
+                3926
+              ],
+              [
+                1141,
+                1269,
+                845
+              ],
+              [
+                5671,
+                2211,
+                4603
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11510,
+              "NO_CLEAR_EDGE": 3255,
+              "HOLD_BETTER": 12485
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.45499719350693774,
+            "macro_f1": 0.4227136252308932,
+            "log_loss": 1.0562511391357532,
+            "confusion_matrix": [
+              [
+                4355,
+                2950,
+                3395
+              ],
+              [
+                1117,
+                3088,
+                975
+              ],
+              [
+                3656,
+                3753,
+                4201
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10700,
+              "NO_CLEAR_EDGE": 5180,
+              "HOLD_BETTER": 11610
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2368,
+            "balanced_accuracy": 0.33959899749373434,
+            "macro_f1": 0.2295671327210699,
+            "log_loss": 1.0690843952401206,
+            "confusion_matrix": [
+              [
+                10,
+                522,
+                0
+              ],
+              [
+                0,
+                1140,
+                0
+              ],
+              [
+                0,
+                696,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 532,
+              "NO_CLEAR_EDGE": 1140,
+              "HOLD_BETTER": 696
+            },
+            "coverage": 0.08614041469625318,
+            "precision_exit_better": 1.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/long_60m/full_position_matrix_topology.cbm"
+        }
+      ],
+      "best_feature_group_by_test_macro_f1_research_only": "position_plus_topology"
+    },
+    {
+      "side": "SHORT",
+      "horizon_minutes": 15,
+      "entry_ages_minutes": [
+        15,
+        30,
+        60,
+        120,
+        240
+      ],
+      "label_definition": {
+        "HOLD_BETTER": "future endpoint >= +8.0 bps or MFE >= 12.0 bps without MAE <= -15.0 bps",
+        "EXIT_BETTER": "future endpoint <= -8.0 bps or MAE <= -15.0 bps without recovery",
+        "NO_CLEAR_EDGE": "both/neither condition"
+      },
+      "split": {
+        "train_end": "2026-06-28T02:45:03.552826+00:00",
+        "validation_start": "2026-06-28T06:45:16.659408896+00:00",
+        "test_start": "2026-07-17T09:45:02.965754112+00:00",
+        "test_end": "2026-08-05T03:30:19.905113+00:00"
+      },
+      "counts": {
+        "dataset": 92017,
+        "train": 64297,
+        "validation": 13695,
+        "test": 13800,
+        "test_classes": {
+          "NO_CLEAR_EDGE": 6375,
+          "EXIT_BETTER": 3890,
+          "HOLD_BETTER": 3535
+        }
+      },
+      "ablation": [
+        {
+          "feature_group": "position_only",
+          "feature_count": 11,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.41396214420935845,
+            "macro_f1": 0.41254231531451785,
+            "log_loss": 1.0786963911588,
+            "confusion_matrix": [
+              [
+                1504,
+                1338,
+                1648
+              ],
+              [
+                1118,
+                2247,
+                1415
+              ],
+              [
+                1204,
+                1288,
+                1933
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4490,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4425
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.39871436701467555,
+            "macro_f1": 0.3981594494877512,
+            "log_loss": 1.0834834877793758,
+            "confusion_matrix": [
+              [
+                1403,
+                1324,
+                1163
+              ],
+              [
+                1741,
+                3227,
+                1407
+              ],
+              [
+                1163,
+                1208,
+                1164
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3890,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3535
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 155,
+            "balanced_accuracy": 0.41379310344827586,
+            "macro_f1": 0.39911111111111114,
+            "log_loss": 0.7829378944333936,
+            "confusion_matrix": [
+              [
+                7,
+                22,
+                0
+              ],
+              [
+                0,
+                108,
+                0
+              ],
+              [
+                6,
+                12,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 29,
+              "NO_CLEAR_EDGE": 108,
+              "HOLD_BETTER": 18
+            },
+            "coverage": 0.011231884057971014,
+            "precision_exit_better": 0.5384615384615384,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_15m/position_only.cbm"
+        },
+        {
+          "feature_group": "position_plus_topology",
+          "feature_count": 68,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.4265907016375534,
+            "macro_f1": 0.42658565526243125,
+            "log_loss": 1.067609730833399,
+            "confusion_matrix": [
+              [
+                1727,
+                1183,
+                1580
+              ],
+              [
+                1275,
+                2141,
+                1364
+              ],
+              [
+                1391,
+                1055,
+                1979
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4490,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4425
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.4162140354797183,
+            "macro_f1": 0.41450102813295625,
+            "log_loss": 1.0539260948771985,
+            "confusion_matrix": [
+              [
+                1216,
+                1399,
+                1275
+              ],
+              [
+                1213,
+                3475,
+                1687
+              ],
+              [
+                967,
+                1186,
+                1382
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3890,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3535
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 1245,
+            "balanced_accuracy": 0.3273684210526316,
+            "macro_f1": 0.28624022089277495,
+            "log_loss": 0.7817031045823641,
+            "confusion_matrix": [
+              [
+                0,
+                151,
+                5
+              ],
+              [
+                5,
+                933,
+                12
+              ],
+              [
+                0,
+                139,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 156,
+              "NO_CLEAR_EDGE": 950,
+              "HOLD_BETTER": 139
+            },
+            "coverage": 0.09021739130434783,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_15m/position_plus_topology.cbm"
+        },
+        {
+          "feature_group": "position_plus_matrix",
+          "feature_count": 32,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.4025953736978749,
+            "macro_f1": 0.40050590572948663,
+            "log_loss": 1.0804396045419518,
+            "confusion_matrix": [
+              [
+                1538,
+                1086,
+                1866
+              ],
+              [
+                1226,
+                1835,
+                1719
+              ],
+              [
+                1262,
+                1033,
+                2130
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4490,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4425
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.3920093674399519,
+            "macro_f1": 0.39072520683230655,
+            "log_loss": 1.0838925282355008,
+            "confusion_matrix": [
+              [
+                1248,
+                1448,
+                1194
+              ],
+              [
+                1421,
+                3149,
+                1805
+              ],
+              [
+                980,
+                1278,
+                1277
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3890,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3535
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 98,
+            "balanced_accuracy": 0.41333333333333333,
+            "macro_f1": 0.3584640898073734,
+            "log_loss": 1.001781895964158,
+            "confusion_matrix": [
+              [
+                7,
+                18,
+                0
+              ],
+              [
+                2,
+                48,
+                0
+              ],
+              [
+                5,
+                18,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 25,
+              "NO_CLEAR_EDGE": 50,
+              "HOLD_BETTER": 23
+            },
+            "coverage": 0.007101449275362319,
+            "precision_exit_better": 0.5,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_15m/position_plus_matrix.cbm"
+        },
+        {
+          "feature_group": "full_position_matrix_topology",
+          "feature_count": 89,
+          "validation_metrics": {
+            "rows": 13695,
+            "balanced_accuracy": 0.42380958623509773,
+            "macro_f1": 0.4236001963184198,
+            "log_loss": 1.064626245980473,
+            "confusion_matrix": [
+              [
+                1678,
+                1133,
+                1679
+              ],
+              [
+                1255,
+                2136,
+                1389
+              ],
+              [
+                1319,
+                1111,
+                1995
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 4490,
+              "NO_CLEAR_EDGE": 4780,
+              "HOLD_BETTER": 4425
+            }
+          },
+          "test_metrics": {
+            "rows": 13800,
+            "balanced_accuracy": 0.4047182287000168,
+            "macro_f1": 0.4041691708446711,
+            "log_loss": 1.0506821046256973,
+            "confusion_matrix": [
+              [
+                1177,
+                1518,
+                1195
+              ],
+              [
+                1247,
+                3714,
+                1414
+              ],
+              [
+                1047,
+                1325,
+                1163
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 3890,
+              "NO_CLEAR_EDGE": 6375,
+              "HOLD_BETTER": 3535
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 1319,
+            "balanced_accuracy": 0.34832159830280557,
+            "macro_f1": 0.32427177205249974,
+            "log_loss": 0.7762367906073576,
+            "confusion_matrix": [
+              [
+                10,
+                144,
+                5
+              ],
+              [
+                5,
+                986,
+                13
+              ],
+              [
+                14,
+                142,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 159,
+              "NO_CLEAR_EDGE": 1004,
+              "HOLD_BETTER": 156
+            },
+            "coverage": 0.09557971014492754,
+            "precision_exit_better": 0.3448275862068966,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_15m/full_position_matrix_topology.cbm"
+        }
+      ],
+      "best_feature_group_by_test_macro_f1_research_only": "position_plus_topology"
+    },
+    {
+      "side": "SHORT",
+      "horizon_minutes": 30,
+      "entry_ages_minutes": [
+        15,
+        30,
+        60,
+        120,
+        240
+      ],
+      "label_definition": {
+        "HOLD_BETTER": "future endpoint >= +8.0 bps or MFE >= 12.0 bps without MAE <= -15.0 bps",
+        "EXIT_BETTER": "future endpoint <= -8.0 bps or MAE <= -15.0 bps without recovery",
+        "NO_CLEAR_EDGE": "both/neither condition"
+      },
+      "split": {
+        "train_end": "2026-06-27T17:15:08.536680+00:00",
+        "validation_start": "2026-06-27T21:15:11.316113920+00:00",
+        "test_start": "2026-07-16T23:15:03.450344960+00:00",
+        "test_end": "2026-08-05T03:30:19.905113+00:00"
+      },
+      "counts": {
+        "dataset": 183157,
+        "train": 127972,
+        "validation": 27240,
+        "test": 27475,
+        "test_classes": {
+          "NO_CLEAR_EDGE": 10380,
+          "HOLD_BETTER": 8745,
+          "EXIT_BETTER": 8350
+        }
+      },
+      "ablation": [
+        {
+          "feature_group": "position_only",
+          "feature_count": 11,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.39975915802527356,
+            "macro_f1": 0.3970858918519106,
+            "log_loss": 1.0720289656272692,
+            "confusion_matrix": [
+              [
+                3497,
+                2578,
+                3650
+              ],
+              [
+                1935,
+                3129,
+                2321
+              ],
+              [
+                3078,
+                2838,
+                4214
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9725,
+              "NO_CLEAR_EDGE": 7385,
+              "HOLD_BETTER": 10130
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.4017145133812856,
+            "macro_f1": 0.40137459805948666,
+            "log_loss": 1.0798909608490865,
+            "confusion_matrix": [
+              [
+                2942,
+                2837,
+                2571
+              ],
+              [
+                2765,
+                5169,
+                2446
+              ],
+              [
+                2839,
+                2803,
+                3103
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8350,
+              "NO_CLEAR_EDGE": 10380,
+              "HOLD_BETTER": 8745
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 369,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.27926509186351706,
+            "log_loss": 0.8209772426509784,
+            "confusion_matrix": [
+              [
+                0,
+                57,
+                0
+              ],
+              [
+                0,
+                266,
+                0
+              ],
+              [
+                0,
+                46,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 57,
+              "NO_CLEAR_EDGE": 266,
+              "HOLD_BETTER": 46
+            },
+            "coverage": 0.013430391264786169,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_30m/position_only.cbm"
+        },
+        {
+          "feature_group": "position_plus_topology",
+          "feature_count": 68,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.406644828175099,
+            "macro_f1": 0.40178765363939384,
+            "log_loss": 1.0683329968276918,
+            "confusion_matrix": [
+              [
+                2988,
+                2477,
+                4260
+              ],
+              [
+                1722,
+                3219,
+                2444
+              ],
+              [
+                2724,
+                2576,
+                4830
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9725,
+              "NO_CLEAR_EDGE": 7385,
+              "HOLD_BETTER": 10130
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.4078527003274737,
+            "macro_f1": 0.4052075678347478,
+            "log_loss": 1.0572453063082072,
+            "confusion_matrix": [
+              [
+                2400,
+                2951,
+                2999
+              ],
+              [
+                2063,
+                5698,
+                2619
+              ],
+              [
+                2491,
+                2868,
+                3386
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8350,
+              "NO_CLEAR_EDGE": 10380,
+              "HOLD_BETTER": 8745
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2345,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.2835906232132647,
+            "log_loss": 0.8052113004375033,
+            "confusion_matrix": [
+              [
+                0,
+                305,
+                0
+              ],
+              [
+                0,
+                1736,
+                0
+              ],
+              [
+                0,
+                304,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 305,
+              "NO_CLEAR_EDGE": 1736,
+              "HOLD_BETTER": 304
+            },
+            "coverage": 0.08535031847133757,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_30m/position_plus_topology.cbm"
+        },
+        {
+          "feature_group": "position_plus_matrix",
+          "feature_count": 32,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.40456195987629834,
+            "macro_f1": 0.40261759684700893,
+            "log_loss": 1.0707663759714792,
+            "confusion_matrix": [
+              [
+                3418,
+                2324,
+                3983
+              ],
+              [
+                1848,
+                3092,
+                2445
+              ],
+              [
+                3088,
+                2549,
+                4493
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9725,
+              "NO_CLEAR_EDGE": 7385,
+              "HOLD_BETTER": 10130
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.38662660652513203,
+            "macro_f1": 0.3840922392177033,
+            "log_loss": 1.0842056299616667,
+            "confusion_matrix": [
+              [
+                2667,
+                3429,
+                2254
+              ],
+              [
+                2442,
+                5498,
+                2440
+              ],
+              [
+                2595,
+                3432,
+                2718
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8350,
+              "NO_CLEAR_EDGE": 10380,
+              "HOLD_BETTER": 8745
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 261,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.24330900243309003,
+            "log_loss": 0.9859244181784557,
+            "confusion_matrix": [
+              [
+                0,
+                42,
+                0
+              ],
+              [
+                0,
+                150,
+                0
+              ],
+              [
+                0,
+                69,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 42,
+              "NO_CLEAR_EDGE": 150,
+              "HOLD_BETTER": 69
+            },
+            "coverage": 0.009499545040946316,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_30m/position_plus_matrix.cbm"
+        },
+        {
+          "feature_group": "full_position_matrix_topology",
+          "feature_count": 89,
+          "validation_metrics": {
+            "rows": 27240,
+            "balanced_accuracy": 0.41068853995186766,
+            "macro_f1": 0.4067771967733879,
+            "log_loss": 1.064892998197903,
+            "confusion_matrix": [
+              [
+                3304,
+                2447,
+                3974
+              ],
+              [
+                1765,
+                3377,
+                2243
+              ],
+              [
+                3060,
+                2663,
+                4407
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 9725,
+              "NO_CLEAR_EDGE": 7385,
+              "HOLD_BETTER": 10130
+            }
+          },
+          "test_metrics": {
+            "rows": 27475,
+            "balanced_accuracy": 0.41602003302608637,
+            "macro_f1": 0.40968362638333905,
+            "log_loss": 1.0532649943049055,
+            "confusion_matrix": [
+              [
+                2344,
+                3479,
+                2527
+              ],
+              [
+                1837,
+                6454,
+                2089
+              ],
+              [
+                2418,
+                3305,
+                3022
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 8350,
+              "NO_CLEAR_EDGE": 10380,
+              "HOLD_BETTER": 8745
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 3019,
+            "balanced_accuracy": 0.3360160965794769,
+            "macro_f1": 0.2783183464439541,
+            "log_loss": 0.8416492009626513,
+            "confusion_matrix": [
+              [
+                4,
+                493,
+                0
+              ],
+              [
+                0,
+                2088,
+                0
+              ],
+              [
+                5,
+                429,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 497,
+              "NO_CLEAR_EDGE": 2088,
+              "HOLD_BETTER": 434
+            },
+            "coverage": 0.10988171064604185,
+            "precision_exit_better": 0.4444444444444444,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_30m/full_position_matrix_topology.cbm"
+        }
+      ],
+      "best_feature_group_by_test_macro_f1_research_only": "full_position_matrix_topology"
+    },
+    {
+      "side": "SHORT",
+      "horizon_minutes": 60,
+      "entry_ages_minutes": [
+        15,
+        30,
+        60,
+        120,
+        240
+      ],
+      "label_definition": {
+        "HOLD_BETTER": "future endpoint >= +8.0 bps or MFE >= 12.0 bps without MAE <= -15.0 bps",
+        "EXIT_BETTER": "future endpoint <= -8.0 bps or MAE <= -15.0 bps without recovery",
+        "NO_CLEAR_EDGE": "both/neither condition"
+      },
+      "split": {
+        "train_end": "2026-06-27T16:45:02.714075+00:00",
+        "validation_start": "2026-06-27T20:45:04.047523584+00:00",
+        "test_start": "2026-07-16T22:46:46.991908352+00:00",
+        "test_end": "2026-08-05T03:30:19.905113+00:00"
+      },
+      "counts": {
+        "dataset": 183267,
+        "train": 128047,
+        "validation": 27250,
+        "test": 27490,
+        "test_classes": {
+          "HOLD_BETTER": 11375,
+          "EXIT_BETTER": 10865,
+          "NO_CLEAR_EDGE": 5250
+        }
+      },
+      "ablation": [
+        {
+          "feature_group": "position_only",
+          "feature_count": 11,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.40261507731317003,
+            "macro_f1": 0.3770085493377328,
+            "log_loss": 1.0464571878413766,
+            "confusion_matrix": [
+              [
+                5019,
+                2671,
+                4125
+              ],
+              [
+                952,
+                1327,
+                1026
+              ],
+              [
+                4614,
+                2888,
+                4628
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11815,
+              "NO_CLEAR_EDGE": 3305,
+              "HOLD_BETTER": 12130
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.42237608748055133,
+            "macro_f1": 0.3932944447611318,
+            "log_loss": 1.0625980755663913,
+            "confusion_matrix": [
+              [
+                4678,
+                3471,
+                2716
+              ],
+              [
+                1565,
+                2820,
+                865
+              ],
+              [
+                4532,
+                3437,
+                3406
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10865,
+              "NO_CLEAR_EDGE": 5250,
+              "HOLD_BETTER": 11375
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 326,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.22582826233941852,
+            "log_loss": 1.0361274344921783,
+            "confusion_matrix": [
+              [
+                0,
+                82,
+                0
+              ],
+              [
+                0,
+                167,
+                0
+              ],
+              [
+                0,
+                77,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 82,
+              "NO_CLEAR_EDGE": 167,
+              "HOLD_BETTER": 77
+            },
+            "coverage": 0.011858857766460531,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_60m/position_only.cbm"
+        },
+        {
+          "feature_group": "position_plus_topology",
+          "feature_count": 68,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.40607317978218777,
+            "macro_f1": 0.385100976026213,
+            "log_loss": 1.0446780326066671,
+            "confusion_matrix": [
+              [
+                4185,
+                2194,
+                5436
+              ],
+              [
+                774,
+                1254,
+                1277
+              ],
+              [
+                3847,
+                2405,
+                5878
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11815,
+              "NO_CLEAR_EDGE": 3305,
+              "HOLD_BETTER": 12130
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.4602057934906531,
+            "macro_f1": 0.4373626546007166,
+            "log_loss": 1.0477265271156462,
+            "confusion_matrix": [
+              [
+                3892,
+                2899,
+                4074
+              ],
+              [
+                1130,
+                2903,
+                1217
+              ],
+              [
+                3295,
+                2740,
+                5340
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10865,
+              "NO_CLEAR_EDGE": 5250,
+              "HOLD_BETTER": 11375
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2366,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.22778705249489892,
+            "log_loss": 1.0328588088319903,
+            "confusion_matrix": [
+              [
+                0,
+                580,
+                0
+              ],
+              [
+                0,
+                1228,
+                0
+              ],
+              [
+                0,
+                558,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 580,
+              "NO_CLEAR_EDGE": 1228,
+              "HOLD_BETTER": 558
+            },
+            "coverage": 0.0860676609676246,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_60m/position_plus_topology.cbm"
+        },
+        {
+          "feature_group": "position_plus_matrix",
+          "feature_count": 32,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.3985885866972534,
+            "macro_f1": 0.3791175421568605,
+            "log_loss": 1.0496244870769604,
+            "confusion_matrix": [
+              [
+                4951,
+                2324,
+                4540
+              ],
+              [
+                943,
+                1220,
+                1142
+              ],
+              [
+                4647,
+                2539,
+                4944
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11815,
+              "NO_CLEAR_EDGE": 3305,
+              "HOLD_BETTER": 12130
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.4023286409351757,
+            "macro_f1": 0.37832948204384226,
+            "log_loss": 1.0799585434418661,
+            "confusion_matrix": [
+              [
+                4608,
+                3419,
+                2838
+              ],
+              [
+                1414,
+                2551,
+                1285
+              ],
+              [
+                4326,
+                3671,
+                3378
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10865,
+              "NO_CLEAR_EDGE": 5250,
+              "HOLD_BETTER": 11375
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 446,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.17497231450719822,
+            "log_loss": 1.1939189766203522,
+            "confusion_matrix": [
+              [
+                0,
+                152,
+                0
+              ],
+              [
+                0,
+                158,
+                0
+              ],
+              [
+                2,
+                134,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 152,
+              "NO_CLEAR_EDGE": 158,
+              "HOLD_BETTER": 136
+            },
+            "coverage": 0.016224081484176065,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_60m/position_plus_matrix.cbm"
+        },
+        {
+          "feature_group": "full_position_matrix_topology",
+          "feature_count": 89,
+          "validation_metrics": {
+            "rows": 27250,
+            "balanced_accuracy": 0.4050218153704778,
+            "macro_f1": 0.38608364490985364,
+            "log_loss": 1.0397553759849787,
+            "confusion_matrix": [
+              [
+                4451,
+                1995,
+                5369
+              ],
+              [
+                885,
+                1249,
+                1171
+              ],
+              [
+                4194,
+                2351,
+                5585
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 11815,
+              "NO_CLEAR_EDGE": 3305,
+              "HOLD_BETTER": 12130
+            }
+          },
+          "test_metrics": {
+            "rows": 27490,
+            "balanced_accuracy": 0.45259444834962553,
+            "macro_f1": 0.4264754096556023,
+            "log_loss": 1.053196605904719,
+            "confusion_matrix": [
+              [
+                4171,
+                3123,
+                3571
+              ],
+              [
+                1148,
+                2988,
+                1114
+              ],
+              [
+                3727,
+                3044,
+                4604
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 10865,
+              "NO_CLEAR_EDGE": 5250,
+              "HOLD_BETTER": 11375
+            }
+          },
+          "selected_policy": {
+            "confidence": 0.55,
+            "margin": 0.1,
+            "fallback": true
+          },
+          "selective_test_metrics": {
+            "rows": 2309,
+            "balanced_accuracy": 0.3333333333333333,
+            "macro_f1": 0.22228637413394917,
+            "log_loss": 1.0493889376047196,
+            "confusion_matrix": [
+              [
+                0,
+                610,
+                0
+              ],
+              [
+                0,
+                1155,
+                0
+              ],
+              [
+                0,
+                544,
+                0
+              ]
+            ],
+            "class_counts": {
+              "EXIT_BETTER": 610,
+              "NO_CLEAR_EDGE": 1155,
+              "HOLD_BETTER": 544
+            },
+            "coverage": 0.0839941797017097,
+            "precision_exit_better": 0.0,
+            "precision_hold_better": 0.0
+          },
+          "model_path": "data/models/position_guardian_v5_position_state/short_60m/full_position_matrix_topology.cbm"
+        }
+      ],
+      "best_feature_group_by_test_macro_f1_research_only": "position_plus_topology"
+    }
+  ]
+}
