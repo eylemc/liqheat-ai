@@ -20,6 +20,10 @@ from fastapi.staticfiles import StaticFiles
 from supabase import create_client
 
 from src.build_liq_topology_v2 import build_feature
+from src.matrix_live import (
+    combine_matrix_topology,
+    get_live_matrix,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -93,7 +97,7 @@ supabase = create_client(
 cache_lock = Lock()
 
 radar_cache: dict[str, Any] = {
-    "engine": "textara-squeeze-v1",
+    "engine": "liqheat-radar-v2-matrix-topology",
     "status": "STARTING",
     "generated_at": None,
     "last_success_at": None,
@@ -514,6 +518,30 @@ def build_live_radar() -> dict[str, Any]:
             direction_confidence,
         )
 
+        topology_direction = (
+            1
+            if raw_prediction == "SHORT_SQUEEZE"
+            else -1
+        )
+
+        matrix_data = None
+        matrix_error = None
+
+        try:
+            matrix_data = get_live_matrix(
+                str(feature_row["symbol"])
+            )
+        except Exception as exc:
+            matrix_error = (
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        combined = combine_matrix_topology(
+            liquidity_pressure=event_probability,
+            topology_direction=topology_direction,
+            matrix=matrix_data,
+        )
+
         status = classify_status(
             event_probability,
             direction_confidence,
@@ -555,11 +583,37 @@ def build_live_radar() -> dict[str, Any]:
             "current_price": json_safe_number(
                 feature_row["current_price"]
             ),
+            # Backward-compatible raw probability.
             "score": round(event_probability, 6),
-            "radar_score": round(
+
+            # Existing model output is now explicitly named.
+            "liquidity_pressure": round(
+                event_probability,
+                6,
+            ),
+            "liquidity_pressure_score": round(
                 event_probability * 100,
                 2,
             ),
+
+            # Matrix + topology opportunity score.
+            "radar_score": combined[
+                "radar_score"
+            ],
+            "opportunity": combined[
+                "opportunity"
+            ],
+            "matrix_gate": combined[
+                "matrix_gate"
+            ],
+            "matrix_agreement": combined[
+                "matrix_agreement"
+            ],
+            "radar_explanation": combined[
+                "explanation"
+            ],
+
+            # Legacy topology status remains visible.
             "status": status,
             "prediction": displayed_prediction,
             "raw_prediction": raw_prediction,
@@ -571,6 +625,14 @@ def build_live_radar() -> dict[str, Any]:
             ),
             "alert_eligible": (
                 status in {"ALERT", "CRITICAL"}
+            ),
+            "matrix": (
+                matrix_data
+                if matrix_data is not None
+                else {
+                    "available": False,
+                    "error": matrix_error,
+                }
             ),
             "probabilities": {
                 "long_squeeze": round(
@@ -625,7 +687,7 @@ def build_live_radar() -> dict[str, Any]:
         })
 
     results.sort(
-        key=lambda item: item["score"],
+        key=lambda item: item["radar_score"],
         reverse=True,
     )
 
@@ -651,9 +713,23 @@ def build_live_radar() -> dict[str, Any]:
     )
 
     return {
-        "engine": "textara-squeeze-v1",
+        "engine": "liqheat-radar-v2-matrix-topology",
         "status": "ONLINE",
-        "source": "supabase.liq_logging",
+        "source": {
+            "topology": "supabase.liq_logging",
+            "matrix": "binance-usd-m-futures-klines",
+        },
+        "scoring": {
+            "liquidity_pressure": (
+                "Existing squeeze event probability"
+            ),
+            "matrix": (
+                "VWMA(20) OHLC4 multi-timeframe regime"
+            ),
+            "radar_score": (
+                "Rule-based Matrix + Topology opportunity score"
+            ),
+        },
         "generated_at": utc_iso(),
         "last_success_at": utc_iso(),
         "refresh_seconds": REFRESH_SECONDS,
@@ -728,7 +804,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="LiqHeat AI Radar",
-    version="0.3.0",
+    version="0.4.0",
     lifespan=lifespan,
 )
 
