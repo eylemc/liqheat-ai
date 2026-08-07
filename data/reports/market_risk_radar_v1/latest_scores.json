@@ -1,0 +1,101 @@
+[
+  {
+    "symbol": "BTCUSDT",
+    "as_of": "2026-08-04T22:30:03.285619+00:00",
+    "horizon_minutes": 15,
+    "risk_score": 23.151340374444768,
+    "risk_band": "LOW RISK",
+    "probability_high_risk": 0.27282823535741335,
+    "probability_extreme_risk": 0.20397018266913722,
+    "selected_feature_group": "price_calendar_baseline",
+    "research_only": true
+  },
+  {
+    "symbol": "ETHUSDT",
+    "as_of": "2026-08-05T01:15:11.722199+00:00",
+    "horizon_minutes": 15,
+    "risk_score": 38.679350275704316,
+    "risk_band": "MEDIUM RISK",
+    "probability_high_risk": 0.522720034666382,
+    "probability_extreme_risk": 0.2961758148174839,
+    "selected_feature_group": "price_calendar_baseline",
+    "research_only": true
+  },
+  {
+    "symbol": "SOLUSDT",
+    "as_of": "2026-08-05T03:45:13.899504+00:00",
+    "horizon_minutes": 15,
+    "risk_score": 67.56665588920639,
+    "risk_band": "HIGH RISK",
+    "probability_high_risk": 0.7578778350274832,
+    "probability_extreme_risk": 0.6208590414684508,
+    "selected_feature_group": "price_calendar_baseline",
+    "research_only": true
+  },
+  {
+    "symbol": "BTCUSDT",
+    "as_of": "2026-08-04T22:30:03.285619+00:00",
+    "horizon_minutes": 30,
+    "risk_score": 23.626276376715303,
+    "risk_band": "LOW RISK",
+    "probability_high_risk": 0.25839905387288997,
+    "probability_extreme_risk": 0.22150523702999508,
+    "selected_feature_group": "price_calendar_baseline",
+    "research_only": true
+  },
+  {
+    "symbol": "ETHUSDT",
+    "as_of": "2026-08-05T01:15:11.722199+00:00",
+    "horizon_minutes": 30,
+    "risk_score": 41.295265337862354,
+    "risk_band": "MEDIUM RISK",
+    "probability_high_risk": 0.48201721573898376,
+    "probability_extreme_risk": 0.3669096118050501,
+    "selected_feature_group": "price_calendar_baseline",
+    "research_only": true
+  },
+  {
+    "symbol": "SOLUSDT",
+    "as_of": "2026-08-05T03:45:13.899504+00:00",
+    "horizon_minutes": 30,
+    "risk_score": 65.39396352703572,
+    "risk_band": "HIGH RISK",
+    "probability_high_risk": 0.6968131572507584,
+    "probability_extreme_risk": 0.6253572872834231,
+    "selected_feature_group": "price_calendar_baseline",
+    "research_only": true
+  },
+  {
+    "symbol": "BTCUSDT",
+    "as_of": "2026-08-04T22:30:03.285619+00:00",
+    "horizon_minutes": 60,
+    "risk_score": 9.737368172314905,
+    "risk_band": "LOW RISK",
+    "probability_high_risk": 0.09685251862128211,
+    "probability_extreme_risk": 0.09772112379106036,
+    "selected_feature_group": "dynamic_topology",
+    "research_only": true
+  },
+  {
+    "symbol": "ETHUSDT",
+    "as_of": "2026-08-05T01:15:11.722199+00:00",
+    "horizon_minutes": 60,
+    "risk_score": 41.32263562721065,
+    "risk_band": "MEDIUM RISK",
+    "probability_high_risk": 0.45920314235320836,
+    "probability_extreme_risk": 0.382575165551372,
+    "selected_feature_group": "dynamic_topology",
+    "research_only": true
+  },
+  {
+    "symbol": "SOLUSDT",
+    "as_of": "2026-08-05T03:45:13.899504+00:00",
+    "horizon_minutes": 60,
+    "risk_score": 55.4884982732373,
+    "risk_band": "HIGH RISK",
+    "probability_high_risk": 0.6227050469433972,
+    "probability_extreme_risk": 0.50967160659169,
+    "selected_feature_group": "dynamic_topology",
+    "research_only": true
+  }
+]

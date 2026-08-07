@@ -1,0 +1,300 @@
+{
+  "horizon_minutes": 60,
+  "split": {
+    "train_end": "2026-06-27T16:00:06.610346+00:00",
+    "validation_start": "2026-06-28T00:00:14.517373+00:00",
+    "validation_end": "2026-07-16T18:30:16.592341+00:00",
+    "test_start": "2026-07-17T02:45:01.927371+00:00",
+    "test_end": "2026-08-05T03:45:13.899504+00:00"
+  },
+  "counts": {
+    "dataset": 36689,
+    "train": 25633,
+    "validation": 5407,
+    "test": 5456
+  },
+  "train_derived_range_thresholds_bps": {
+    "medium_q50": 61.930783242259274,
+    "high_q75": 94.27203614112523,
+    "extreme_q90": 143.78354628354012
+  },
+  "selected_feature_group_by_validation_mean_pr_auc": "dynamic_topology",
+  "feature_groups": [
+    {
+      "feature_group": "price_calendar_baseline",
+      "feature_count": 11,
+      "validation_selection_score_mean_pr_auc": 0.4579618883295838,
+      "high_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.2565193267985944,
+          "roc_auc": 0.7835029969116207,
+          "pr_auc": 0.5982137570080631,
+          "brier": 0.2160034513766819,
+          "precision_at_0_5": 0.4206471494607088,
+          "recall_at_0_5": 0.7873107426099495
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.12426686217008798,
+          "roc_auc": 0.8050121562569842,
+          "pr_auc": 0.4057265009918178,
+          "brier": 0.22121935810894858,
+          "precision_at_0_5": 0.22897196261682243,
+          "recall_at_0_5": 0.7949852507374632
+        }
+      },
+      "extreme_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.08655446643240244,
+          "roc_auc": 0.7810594812265191,
+          "pr_auc": 0.31771001965110446,
+          "brier": 0.22654542762225835,
+          "precision_at_0_5": 0.1703883495145631,
+          "recall_at_0_5": 0.75
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.03189149560117302,
+          "roc_auc": 0.8210121557926073,
+          "pr_auc": 0.16362305950598155,
+          "brier": 0.21645750254420493,
+          "precision_at_0_5": 0.07292759706190975,
+          "recall_at_0_5": 0.7988505747126436
+        }
+      },
+      "risk_score_test": {
+        "mean": 45.409622274575334,
+        "median": 44.39351563142823,
+        "p90": 72.04623364451415,
+        "exact_band_accuracy": 0.26777859237536655,
+        "within_one_band_accuracy": 0.7916055718475073,
+        "mean_absolute_band_error": 0.9539956011730205,
+        "predicted_band_counts": {
+          "LOW RISK": 810,
+          "MEDIUM RISK": 2528,
+          "HIGH RISK": 1701,
+          "EXTREME RISK": 417
+        },
+        "realized_band_counts": {
+          "LOW RISK": 3732,
+          "MEDIUM RISK": 1046,
+          "HIGH RISK": 504,
+          "EXTREME RISK": 174
+        }
+      },
+      "model_paths": {
+        "high": "data/models/market_risk_radar_v1/60m/price_calendar_baseline/high_risk_head.cbm",
+        "extreme": "data/models/market_risk_radar_v1/60m/price_calendar_baseline/extreme_risk_head.cbm"
+      }
+    },
+    {
+      "feature_group": "static_topology",
+      "feature_count": 47,
+      "validation_selection_score_mean_pr_auc": 0.45862207139283917,
+      "high_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.2565193267985944,
+          "roc_auc": 0.7825131731393501,
+          "pr_auc": 0.6003370304004816,
+          "brier": 0.20879596130672226,
+          "precision_at_0_5": 0.41899441340782123,
+          "recall_at_0_5": 0.7570295602018745
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.12426686217008798,
+          "roc_auc": 0.8019900700234975,
+          "pr_auc": 0.3919904776669461,
+          "brier": 0.2007278073206271,
+          "precision_at_0_5": 0.23977951309141018,
+          "recall_at_0_5": 0.7699115044247787
+        }
+      },
+      "extreme_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.08655446643240244,
+          "roc_auc": 0.778256264893236,
+          "pr_auc": 0.3169071123851968,
+          "brier": 0.20897087640979217,
+          "precision_at_0_5": 0.1687041564792176,
+          "recall_at_0_5": 0.7371794871794872
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.03189149560117302,
+          "roc_auc": 0.8118256755756919,
+          "pr_auc": 0.1624987612910339,
+          "brier": 0.19025117906399616,
+          "precision_at_0_5": 0.07286995515695067,
+          "recall_at_0_5": 0.7471264367816092
+        }
+      },
+      "risk_score_test": {
+        "mean": 41.0283639273844,
+        "median": 39.562037040860254,
+        "p90": 70.80630364487313,
+        "exact_band_accuracy": 0.3883797653958944,
+        "within_one_band_accuracy": 0.7980205278592375,
+        "mean_absolute_band_error": 0.8253299120234604,
+        "predicted_band_counts": {
+          "LOW RISK": 1616,
+          "MEDIUM RISK": 1861,
+          "HIGH RISK": 1607,
+          "EXTREME RISK": 372
+        },
+        "realized_band_counts": {
+          "LOW RISK": 3732,
+          "MEDIUM RISK": 1046,
+          "HIGH RISK": 504,
+          "EXTREME RISK": 174
+        }
+      },
+      "model_paths": {
+        "high": "data/models/market_risk_radar_v1/60m/static_topology/high_risk_head.cbm",
+        "extreme": "data/models/market_risk_radar_v1/60m/static_topology/extreme_risk_head.cbm"
+      }
+    },
+    {
+      "feature_group": "dynamic_topology",
+      "feature_count": 59,
+      "validation_selection_score_mean_pr_auc": 0.4613530176212126,
+      "high_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.2565193267985944,
+          "roc_auc": 0.7842804721884449,
+          "pr_auc": 0.6068437079619062,
+          "brier": 0.20918240271488084,
+          "precision_at_0_5": 0.41726332537788385,
+          "recall_at_0_5": 0.756308579668349
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.12426686217008798,
+          "roc_auc": 0.804677226373089,
+          "pr_auc": 0.3958093128413186,
+          "brier": 0.19719045789230383,
+          "precision_at_0_5": 0.24376470588235294,
+          "recall_at_0_5": 0.7640117994100295
+        }
+      },
+      "extreme_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.08655446643240244,
+          "roc_auc": 0.7771119625239894,
+          "pr_auc": 0.31586232728051905,
+          "brier": 0.21116098218525517,
+          "precision_at_0_5": 0.16863905325443787,
+          "recall_at_0_5": 0.7307692307692307
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.03189149560117302,
+          "roc_auc": 0.8201645580087654,
+          "pr_auc": 0.16550002348007284,
+          "brier": 0.18362342479860724,
+          "precision_at_0_5": 0.07751027598355843,
+          "recall_at_0_5": 0.7586206896551724
+        }
+      },
+      "risk_score_test": {
+        "mean": 39.634062737394295,
+        "median": 37.781230145948726,
+        "p90": 71.64338964869205,
+        "exact_band_accuracy": 0.40487536656891493,
+        "within_one_band_accuracy": 0.813233137829912,
+        "mean_absolute_band_error": 0.7965542521994134,
+        "predicted_band_counts": {
+          "LOW RISK": 1703,
+          "MEDIUM RISK": 1896,
+          "HIGH RISK": 1441,
+          "EXTREME RISK": 416
+        },
+        "realized_band_counts": {
+          "LOW RISK": 3732,
+          "MEDIUM RISK": 1046,
+          "HIGH RISK": 504,
+          "EXTREME RISK": 174
+        }
+      },
+      "model_paths": {
+        "high": "data/models/market_risk_radar_v1/60m/dynamic_topology/high_risk_head.cbm",
+        "extreme": "data/models/market_risk_radar_v1/60m/dynamic_topology/extreme_risk_head.cbm"
+      }
+    },
+    {
+      "feature_group": "topology_compact_matrix",
+      "feature_count": 68,
+      "validation_selection_score_mean_pr_auc": 0.4392239166742633,
+      "high_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.2565193267985944,
+          "roc_auc": 0.7837370465624293,
+          "pr_auc": 0.5975278173305824,
+          "brier": 0.19141106425678345,
+          "precision_at_0_5": 0.45616438356164385,
+          "recall_at_0_5": 0.7202595529920692
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.12426686217008798,
+          "roc_auc": 0.7958653291697073,
+          "pr_auc": 0.3881777803749761,
+          "brier": 0.17252388705724578,
+          "precision_at_0_5": 0.27731591448931114,
+          "recall_at_0_5": 0.6887905604719764
+        }
+      },
+      "extreme_head": {
+        "validation": {
+          "rows": 5407,
+          "positive_rate": 0.08655446643240244,
+          "roc_auc": 0.769558701629971,
+          "pr_auc": 0.2809200160179443,
+          "brier": 0.17918864201419377,
+          "precision_at_0_5": 0.1821561338289963,
+          "recall_at_0_5": 0.6282051282051282
+        },
+        "test": {
+          "rows": 5456,
+          "positive_rate": 0.03189149560117302,
+          "roc_auc": 0.8034209655868771,
+          "pr_auc": 0.14893053188391545,
+          "brier": 0.1506913196971717,
+          "precision_at_0_5": 0.08981132075471698,
+          "recall_at_0_5": 0.6839080459770115
+        }
+      },
+      "risk_score_test": {
+        "mean": 35.92713047024319,
+        "median": 33.456115209847965,
+        "p90": 65.08587254463399,
+        "exact_band_accuracy": 0.4477639296187683,
+        "within_one_band_accuracy": 0.8632697947214076,
+        "mean_absolute_band_error": 0.6957478005865103,
+        "predicted_band_counts": {
+          "LOW RISK": 2003,
+          "MEDIUM RISK": 2046,
+          "HIGH RISK": 1169,
+          "EXTREME RISK": 238
+        },
+        "realized_band_counts": {
+          "LOW RISK": 3732,
+          "MEDIUM RISK": 1046,
+          "HIGH RISK": 504,
+          "EXTREME RISK": 174
+        }
+      },
+      "model_paths": {
+        "high": "data/models/market_risk_radar_v1/60m/topology_compact_matrix/high_risk_head.cbm",
+        "extreme": "data/models/market_risk_radar_v1/60m/topology_compact_matrix/extreme_risk_head.cbm"
+      }
+    }
+  ]
+}
