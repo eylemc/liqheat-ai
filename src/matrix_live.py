@@ -18,7 +18,7 @@ MATRIX_TIMEFRAMES = [
     "4h",
     "1h",
     "15m",
-    "5m",
+    "1m",
 ]
 
 # Daily ana yön; alt timeframe'ler confirmation sağlar.
@@ -27,7 +27,7 @@ TIMEFRAME_WEIGHTS = {
     "4h": 25.0,
     "1h": 20.0,
     "15m": 15.0,
-    "5m": 10.0,
+    "1m": 10.0,
 }
 
 CACHE_SECONDS = 45
@@ -131,7 +131,6 @@ def _fetch_closed_klines(
             errors="coerce",
         )
 
-    # Binance son satırda halen açık mumu verebilir.
     now = pd.Timestamp.now(tz="UTC")
 
     frame = frame[
@@ -217,9 +216,6 @@ def _matrix_state(
             f"Insufficient {timeframe} candles: {len(frame)}"
         )
 
-    # Pine defaults:
-    # src1 = ohlc4
-    # src2 = ohlc4
     frame["source"] = (
         frame["open"]
         + frame["high"]
@@ -249,9 +245,6 @@ def _matrix_state(
         .replace(0, np.nan)
     )
 
-    # Pine:
-    # h = highest(ma, len)
-    # l = lowest(ma, len)
     frame["upper"] = (
         frame["vwma"]
         .rolling(
@@ -270,10 +263,6 @@ def _matrix_state(
         .min()
     )
 
-    # Pine:
-    # src2 > h[1] ? 1 :
-    # src2 < l[1] ? -1 :
-    # trend[1]
     frame["trend"] = _persistent_trend(
         frame["source"],
         frame["upper"].shift(1),
@@ -653,109 +642,39 @@ def combine_matrix_topology(
     )
 
     if agrees:
-        # Pressure ana bileşen; alignment kalite bonusu.
         combined_score = (
             pressure_score * 0.72
             + alignment_score * 0.28
         )
-
-        if (
-            matrix.get(
-                "full_alignment"
-            )
-            and pressure_score >= 80
-        ):
-            combined_score += 5.0
-
-        elif (
-            matrix.get(
-                "upper_core_aligned"
-            )
-            and pressure_score >= 80
-        ):
-            combined_score += 2.5
-
-        matrix_gate = "PASS"
-
-    elif conflicts:
-        # Üst Matrix rejimine ters topology yönünü
-        # tamamen silmeyiz; fakat ciddi biçimde bastırırız.
-        combined_score = (
-            pressure_score
-            * (
-                0.42
-                - 0.17
-                * alignment_factor
-            )
-        )
-
-        matrix_gate = "BLOCK"
-
-    else:
-        combined_score = (
-            pressure_score * 0.70
-            + alignment_score * 0.10
-        )
-
-        matrix_gate = "NEUTRAL"
-
-    combined_score = float(
-        np.clip(
-            combined_score,
-            0.0,
-            100.0,
-        )
-    )
-
-    if (
-        agrees
-        and combined_score >= 90
-        and alignment_score >= 75
-    ):
-        opportunity = "CRITICAL"
-
-    elif (
-        agrees
-        and combined_score >= 80
-        and alignment_score >= 60
-    ):
-        opportunity = "HIGH"
-
-    elif (
-        agrees
-        and combined_score >= 68
-    ):
         opportunity = "WATCH"
-
+        matrix_gate = "PASS"
+        explanation = (
+            "Topology agrees with Matrix direction."
+        )
     elif conflicts:
+        combined_score = pressure_score * 0.45
         opportunity = "CONFLICT"
-
+        matrix_gate = "BLOCK"
+        explanation = (
+            "Topology conflicts with Matrix direction."
+        )
     else:
-        opportunity = "NORMAL"
+        combined_score = pressure_score * (
+            0.70 + 0.30 * alignment_factor
+        )
+        opportunity = "UNCONFIRMED"
+        matrix_gate = "UNAVAILABLE"
+        explanation = (
+            "Matrix or topology direction unavailable."
+        )
 
     return {
         "radar_score": round(
-            combined_score,
+            float(np.clip(combined_score, 0.0, 100.0)),
             2,
         ),
         "opportunity": opportunity,
-        "matrix_agreement": (
-            True
-            if agrees
-            else False
-            if conflicts
-            else None
-        ),
+        "matrix_agreement": agrees if direction_valid else None,
         "matrix_gate": matrix_gate,
-        "explanation": (
-            "Topology direction agrees with "
-            "the Daily Matrix regime."
-            if agrees
-            else
-            "Topology direction conflicts with "
-            "the Daily Matrix regime."
-            if conflicts
-            else
-            "Matrix direction is not confirmed."
-        ),
+        "explanation": explanation,
     }
