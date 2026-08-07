@@ -21,12 +21,19 @@ function humanize(value, fallback = "—") {
 function matrixData(item) {
   return item.matrix && item.matrix.available !== false ? item.matrix : null;
 }
-function matrixDirection(item) {
-  return matrixData(item)?.direction_label || "UNAVAILABLE";
-}
 function matrixAlignment(item) {
   const v = matrixData(item)?.alignment_score;
   return v === null || v === undefined ? null : Number(v);
+}
+function scalpIdea(item) {
+  const label = matrixData(item)?.timeframes?.["1m"]?.trend_label;
+  if (label === "BUY") return "LONG";
+  if (label === "SELL") return "SHORT";
+  return "N/A";
+}
+function scalpIdeaClass(item) {
+  const idea = scalpIdea(item);
+  return idea === "LONG" ? "matrix-buy" : idea === "SHORT" ? "matrix-sell" : "matrix-neutral";
 }
 function riskData(item) {
   return item.ai_market_risk?.available ? item.ai_market_risk : null;
@@ -54,7 +61,7 @@ function liquidityPressure(item) {
 function matrixTimeframeStrip(item) {
   const matrix = matrixData(item);
   if (!matrix?.timeframes) return '<span class="matrix-unavailable">Matrix unavailable</span>';
-  return ["1d", "4h", "1h", "15m", "5m"].map((timeframe) => {
+  return ["1d", "4h", "1h", "15m", "1m"].map((timeframe) => {
     const label = matrix.timeframes[timeframe]?.trend_label || "—";
     const cls = label === "BUY" ? "matrix-buy" : label === "SELL" ? "matrix-sell" : "matrix-neutral";
     return `<span class="matrix-tf ${cls}"><small>${timeframe.toUpperCase()}</small><strong>${label}</strong></span>`;
@@ -65,9 +72,9 @@ function riskExplanation(item) {
   const risk = riskData(item);
   if (!risk) {
     if (item.ai_market_risk?.reason === "SYMBOL_NOT_TRAINED") {
-      return "15m AI Risk is not trained for this market yet. Matrix direction remains available.";
+      return "15m AI Risk is not trained for this market yet. Matrix scalp idea remains available.";
     }
-    return "15m AI Risk model is temporarily unavailable. Matrix direction remains available.";
+    return "15m AI Risk model is temporarily unavailable. Matrix scalp idea remains available.";
   }
   const high = Math.round(Number(risk.p_high || 0) * 100);
   const extreme = Math.round(Number(risk.p_extreme || 0) * 100);
@@ -100,7 +107,8 @@ function installRiskStyles() {
     .ai-risk-score{display:flex;align-items:baseline;gap:6px}.ai-risk-score strong{font-size:38px;letter-spacing:-.04em}.ai-risk-score span{color:var(--muted)}
     .ai-risk-sub{font-size:10px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.09em}
     .matrix-direction-hero{margin-top:12px;display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border-radius:10px;background:rgba(255,255,255,.025)}
-    .matrix-direction-hero span{color:var(--muted);font-size:11px}.matrix-direction-hero strong{font-size:16px;letter-spacing:.03em}
+    .matrix-direction-hero span{color:var(--muted);font-size:11px}.matrix-direction-hero strong{font-size:18px;letter-spacing:.04em}
+    .scalp-long{color:#4ce5a6}.scalp-short{color:#ff6f7d}.scalp-na{color:var(--muted)}
   `;
   document.head.appendChild(style);
 }
@@ -111,7 +119,7 @@ function cardGlow(item) {
   if (band === "HIGH RISK") return "rgba(255,155,104,.19)";
   if (band === "MEDIUM RISK") return "rgba(255,202,97,.14)";
   if (band === "LOW RISK") return "rgba(76,229,166,.15)";
-  return matrixDirection(item) === "BEARISH" ? "rgba(255,111,125,.10)" : "rgba(84,200,255,.09)";
+  return scalpIdea(item) === "SHORT" ? "rgba(255,111,125,.10)" : "rgba(84,200,255,.09)";
 }
 
 function renderCard(item) {
@@ -119,16 +127,18 @@ function renderCard(item) {
   const alignment = matrixAlignment(item);
   const score = riskScore(item);
   const band = riskBand(item);
+  const idea = scalpIdea(item);
+  const ideaCls = idea === "LONG" ? "scalp-long" : idea === "SHORT" ? "scalp-short" : "scalp-na";
   return `
     <article class="radar-card" style="--glow:${cardGlow(item)}">
       <div class="card-head"><span class="rank">#${item.rank}</span><span class="risk-band-pill risk-${riskClass(item)}">${band}</span></div>
       <h3 class="symbol">${item.symbol}</h3>
       <div class="price">${formatNumber(item.current_price, 6)}</div>
       <div class="ai-risk-hero">
+        <div class="matrix-direction-hero" style="margin-top:0;margin-bottom:12px"><span>Scalp idea · 1M Matrix</span><strong class="${ideaCls}">${idea}</strong></div>
         <div class="ai-risk-heading"><span>15M AI MARKET RISK</span><span class="risk-band-pill risk-${riskClass(item)}">${band}</span></div>
         <div class="ai-risk-score"><strong>${score === null ? "—" : formatNumber(score, 2)}</strong><span>${score === null ? "" : "/ 100"}</span></div>
         <div class="ai-risk-sub">Direction-independent near-term trade risk</div>
-        <div class="matrix-direction-hero"><span>Matrix direction</span><strong class="matrix-direction-${matrixDirection(item)}">${matrixDirection(item)}</strong></div>
       </div>
       <div class="matrix-strip">${matrixTimeframeStrip(item)}</div>
       <div class="metric-stack">
@@ -144,10 +154,12 @@ function renderCard(item) {
 function renderTableRow(item) {
   const alignment = matrixAlignment(item);
   const score = riskScore(item);
+  const idea = scalpIdea(item);
+  const ideaCls = idea === "LONG" ? "scalp-long" : idea === "SHORT" ? "scalp-short" : "scalp-na";
   return `<tr>
     <td>#${item.rank}</td>
     <td><strong>${item.symbol}</strong></td>
-    <td class="matrix-direction-${matrixDirection(item)}"><strong>${matrixDirection(item)}</strong></td>
+    <td class="${ideaCls}"><strong>${idea}</strong></td>
     <td>${score === null ? "—" : formatNumber(score, 2)}</td>
     <td><span class="risk-band-pill risk-${riskClass(item)}">${riskBand(item)}</span></td>
     <td>${alignment === null ? "—" : `${formatNumber(alignment, 1)}%`}</td>
@@ -155,6 +167,17 @@ function renderTableRow(item) {
     <td>${formatNumber(item.current_price, 6)}</td>
     <td>${formatAge(item.age_seconds)}</td>
   </tr>`;
+}
+
+function normalizeHeadings() {
+  const subtitle = document.querySelector('.brand-row p');
+  if (subtitle) subtitle.textContent = '1M Matrix Scalp Idea + 15m AI Market Risk';
+  const heading = document.querySelector('.section-heading h2');
+  if (heading) heading.textContent = 'Matrix scalp idea with near-term trade risk';
+  document.querySelectorAll('th').forEach((th) => {
+    const t = th.textContent.trim().toLowerCase();
+    if (t === 'matrix direction') th.textContent = 'Scalp idea';
+  });
 }
 
 function render(payload) {
@@ -209,5 +232,6 @@ $("refreshButton").addEventListener("click", () => loadRadar(true));
 $("jsonToggle").addEventListener("click", () => $("jsonPanel").classList.toggle("hidden"));
 $("jsonClose").addEventListener("click", () => $("jsonPanel").classList.add("hidden"));
 installRiskStyles();
+normalizeHeadings();
 loadRadar(false);
 startCountdown();
