@@ -42,12 +42,39 @@ def _apply_calibrator(p: np.ndarray, payload: dict[str, Any]) -> np.ndarray:
     raise ValueError(f"Unknown calibrator method: {method}")
 
 
+def _percentile_score(composite_probability_score: float, reference: dict[str, Any]) -> float:
+    scores = np.asarray(reference["score_quantiles"], dtype=float)
+    percentiles = np.asarray(reference["percentiles"], dtype=float)
+    if len(scores) < 2 or len(scores) != len(percentiles):
+        raise ValueError("Invalid risk percentile reference")
+
+    # Quantile curves can contain flat segments. Collapse duplicate score knots
+    # so interpolation remains monotonic and deterministic.
+    unique_scores, first_idx = np.unique(scores, return_index=True)
+    unique_percentiles = percentiles[first_idx]
+    if len(unique_scores) == 1:
+        return 50.0
+
+    return float(np.clip(
+        np.interp(
+            float(composite_probability_score),
+            unique_scores,
+            unique_percentiles,
+            left=0.0,
+            right=100.0,
+        ),
+        0.0,
+        100.0,
+    ))
+
+
 def _band(score: float) -> str:
-    if score >= 75.0:
+    # Score is an empirical percentile, not a raw event probability.
+    if score >= 90.0:
         return "EXTREME RISK"
-    if score >= 50.0:
+    if score >= 75.0:
         return "HIGH RISK"
-    if score >= 25.0:
+    if score >= 50.0:
         return "MEDIUM RISK"
     return "LOW RISK"
 
@@ -109,6 +136,7 @@ class MarketRiskEngine:
         self._loaded = False
         self._error: str | None = None
         self.manifest: dict[str, Any] | None = None
+        self.reference: dict[str, Any] | None = None
         self.models: dict[str, CatBoostClassifier] = {}
         self.calibrators: dict[str, dict[str, Any]] = {}
 
@@ -118,9 +146,14 @@ class MarketRiskEngine:
                 return
             try:
                 manifest_path = MODEL_DIR / "manifest.json"
+                reference_path = MODEL_DIR / "risk_reference.json"
                 if not manifest_path.exists():
                     raise FileNotFoundError(f"Live V2 manifest not found: {manifest_path}")
+                if not reference_path.exists():
+                    raise FileNotFoundError(f"Live risk percentile reference not found: {reference_path}")
+
                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                reference = json.loads(reference_path.read_text(encoding="utf-8"))
                 models: dict[str, CatBoostClassifier] = {}
                 calibrators: dict[str, dict[str, Any]] = {}
                 for head in ("high", "extreme"):
@@ -130,6 +163,7 @@ class MarketRiskEngine:
                     models[head] = model
                     calibrators[head] = json.loads((MODEL_DIR / cfg["calibrator"]).read_text(encoding="utf-8"))
                 self.manifest = manifest
+                self.reference = reference
                 self.models = models
                 self.calibrators = calibrators
                 self._error = None
@@ -141,7 +175,7 @@ class MarketRiskEngine:
     @property
     def available(self) -> bool:
         self._load()
-        return self.manifest is not None and not self._error
+        return self.manifest is not None and self.reference is not None and not self._error
 
     @property
     def error(self) -> str | None:
@@ -208,14 +242,33 @@ class MarketRiskEngine:
                 "calibration_method": cfg["calibration_method"],
             }
 
-        score = float(np.clip(100.0 * (0.40 * probabilities["high"] + 0.60 * probabilities["extreme"]), 0.0, 100.0))
+        composite_probability_score = float(np.clip(
+            100.0 * (0.40 * probabilities["high"] + 0.60 * probabilities["extreme"]),
+            0.0,
+            100.0,
+        ))
+
+        symbol_reference = (self.reference or {}).get("symbols", {}).get(requested)
+        if symbol_reference is None:
+            symbol_reference = (self.reference or {}).get("all")
+        if not symbol_reference:
+            return {
+                "available": False,
+                "reason": "NO_RISK_REFERENCE",
+                "symbol": requested,
+                "horizon_minutes": 15,
+            }
+
+        score = _percentile_score(composite_probability_score, symbol_reference)
         latest_at = pd.to_datetime(row.iloc[0]["logged_at"], utc=True, errors="coerce")
         return {
             "available": True,
             "symbol": requested,
             "horizon_minutes": 15,
-            "risk_score": round(score, 2),
+            "risk_score": int(round(score)),
             "risk_band": _band(score),
+            "risk_score_meaning": "empirical_calibration_percentile",
+            "probability_score": round(composite_probability_score, 2),
             "p_high": round(probabilities["high"], 6),
             "p_extreme": round(probabilities["extreme"], 6),
             "as_of": latest_at.isoformat() if pd.notna(latest_at) else None,
