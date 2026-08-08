@@ -138,26 +138,33 @@ def attach_future_price(
     tolerance_minutes: float,
 ) -> pd.DataFrame:
     pieces: list[pd.DataFrame] = []
+    future_time_col = f"future_time_{horizon_minutes}m"
+    future_price_col = f"future_price_{horizon_minutes}m"
+    target_time_col = f"target_time_{horizon_minutes}m"
+    return_col = f"future_return_bps_{horizon_minutes}m"
 
     for _, group in frame.groupby("symbol", sort=False):
         g = group.sort_values("generated_at").copy()
         lookup = g[["generated_at", "current_price"]].rename(
-            columns={"generated_at": "future_time", "current_price": "future_price"}
+            columns={
+                "generated_at": future_time_col,
+                "current_price": future_price_col,
+            }
         )
-        g["target_time"] = g["generated_at"] + pd.Timedelta(minutes=horizon_minutes)
+        g[target_time_col] = g["generated_at"] + pd.Timedelta(minutes=horizon_minutes)
         matched = pd.merge_asof(
-            g.sort_values("target_time"),
-            lookup.sort_values("future_time"),
-            left_on="target_time",
-            right_on="future_time",
+            g.sort_values(target_time_col),
+            lookup.sort_values(future_time_col),
+            left_on=target_time_col,
+            right_on=future_time_col,
             direction="nearest",
             tolerance=pd.Timedelta(minutes=tolerance_minutes),
         )
         pieces.append(matched)
 
     out = pd.concat(pieces, ignore_index=True)
-    out[f"future_return_bps_{horizon_minutes}m"] = (
-        (out["future_price"] / out["current_price"] - 1.0) * 10000.0
+    out[return_col] = (
+        (out[future_price_col] / out["current_price"] - 1.0) * 10000.0
     )
     return out
 
@@ -296,9 +303,6 @@ def main() -> None:
     extracted = pd.DataFrame(raw["payload_json"].map(extract_snapshot_features).tolist(), index=raw.index)
     frame = pd.concat([raw.drop(columns=["payload_json"]), extracted], axis=1)
 
-    # Pandas 3 no longer allows include_groups=True. Keep the symbol column
-    # inside each group by iterating explicitly; this is stable across pandas
-    # 2.x and 3.x and avoids groupby.apply deprecation differences.
     rolling_parts = [
         add_rolling_features(group, args.window)
         for _, group in frame.groupby("symbol", sort=False)
