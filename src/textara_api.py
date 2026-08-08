@@ -31,6 +31,7 @@ from src.market_risk_live import (
     sample_live_history,
 )
 from src.risk_state_stabilizer import risk_state_stabilizer
+from src.topology_direction_live import topology_direction_engine
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -144,12 +145,6 @@ def safe_log1p_value(value: Any) -> float:
 
 
 def fetch_latest_rows() -> list[dict[str, Any]]:
-    """
-    Her sembolün en son 24h snapshot'ını ayrı sorguyla çeker.
-
-    Bu yaklaşım, sembollerin timestamp'leri birebir aynı olmadığı için
-    tek global latest timestamp kullanmaktan daha güvenlidir.
-    """
     rows: list[dict[str, Any]] = []
 
     for symbol in SYMBOLS:
@@ -178,10 +173,6 @@ def fetch_latest_rows() -> list[dict[str, Any]]:
 def topology_feature_from_live_row(
     row: dict[str, Any],
 ) -> dict[str, Any] | None:
-    """
-    Offline topology builder'ın birebir build_feature() fonksiyonunu kullanır.
-    Böylece training-serving skew oluşmaz.
-    """
     adapted_row = {
         "id": row.get("id"),
         "logged_at": row.get("logged_at"),
@@ -204,10 +195,6 @@ def topology_feature_from_live_row(
 def add_ml_features(
     topology_rows: list[dict[str, Any]],
 ) -> pd.DataFrame:
-    """
-    scripts/build_topology_v2_ml_features.py ile aynı dönüşümleri
-    canlı satırlara uygular.
-    """
     frame = pd.DataFrame(topology_rows)
 
     if frame.empty:
@@ -362,7 +349,6 @@ def add_ml_features(
 
 
 def fetch_market_risk_history(symbol: str) -> list[dict[str, Any]]:
-    """Fetch enough 1h-topology snapshots to reproduce 15m dynamic V2 features."""
     response = (
         supabase
         .table("liq_logging")
@@ -417,14 +403,6 @@ def classify_direction(
     predicted_event: str,
     direction_confidence: float,
 ) -> tuple[str, str, str]:
-    """
-    Yön tahmini ile yön güvenini birbirinden ayırır.
-
-    direction_confidence:
-      < 0.58  -> yön teyitsiz
-      0.58-0.65 -> lean
-      >= 0.65 -> güçlü yön
-    """
     if direction_confidence < 0.58:
         return (
             "NEUTRAL",
@@ -464,12 +442,6 @@ def classify_status(
     score: float,
     direction_confidence: float,
 ) -> str:
-    """
-    WATCH yalnız event riskine dayanabilir.
-
-    ALERT ve CRITICAL için hem yüksek event skoru
-    hem de yeterli yön teyidi gerekir.
-    """
     if (
         score >= float(THRESHOLDS["critical"])
         and direction_confidence >= 0.65
@@ -497,7 +469,6 @@ def build_live_radar() -> dict[str, Any]:
         )
 
     topology_rows = []
-
     source_by_id: dict[str, dict[str, Any]] = {}
 
     for row in live_rows:
@@ -610,6 +581,20 @@ def build_live_radar() -> dict[str, Any]:
                 "error": f"{type(exc).__name__}: {exc}",
             }
 
+        try:
+            direction_model = topology_direction_engine.score_latest(
+                feature_frame.iloc[[row_index]],
+                str(feature_row["symbol"]),
+            )
+        except Exception as exc:
+            direction_model = {
+                "available": False,
+                "reason": "LIVE_INFERENCE_ERROR",
+                "symbol": str(feature_row["symbol"]),
+                "horizon_minutes": 60,
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+
         combined = combine_matrix_topology(
             liquidity_pressure=event_probability,
             topology_direction=topology_direction,
@@ -662,13 +647,27 @@ def build_live_radar() -> dict[str, Any]:
                 feature_row["current_price"]
             ),
             "liquidation_heatmap": compact_heatmap,
-            # New primary product output: direction-independent 15m AI market risk.
             "ai_market_risk": ai_market_risk,
-
-            # Backward-compatible raw probability.
+            "direction_model": direction_model,
+            "direction_prediction": (
+                direction_model.get("prediction")
+                if direction_model.get("available")
+                else None
+            ),
+            "direction_model_confidence": (
+                direction_model.get("confidence")
+                if direction_model.get("available")
+                else None
+            ),
+            "direction_model_version": (
+                direction_model.get("model_version")
+                if direction_model.get("available")
+                else "topology_direction_v1"
+            ),
+            "direction_research_preview": bool(
+                direction_model.get("research_preview")
+            ),
             "score": round(event_probability, 6),
-
-            # Existing model output is now explicitly named.
             "liquidity_pressure": round(
                 event_probability,
                 6,
@@ -677,8 +676,6 @@ def build_live_radar() -> dict[str, Any]:
                 event_probability * 100,
                 2,
             ),
-
-            # Matrix + topology opportunity score.
             "radar_score": combined[
                 "radar_score"
             ],
@@ -694,8 +691,6 @@ def build_live_radar() -> dict[str, Any]:
             "radar_explanation": combined[
                 "explanation"
             ],
-
-            # Legacy topology status remains visible.
             "status": status,
             "prediction": displayed_prediction,
             "raw_prediction": raw_prediction,
@@ -768,8 +763,6 @@ def build_live_radar() -> dict[str, Any]:
             ),
         })
 
-    # Matrix AI Radar prioritizes the safest trained 15m conditions.
-    # Untrained markets remain visible after scored markets.
     results.sort(
         key=lambda item: (
             0 if (item.get("ai_market_risk") or {}).get("available") else 1,
@@ -817,6 +810,9 @@ def build_live_radar() -> dict[str, Any]:
             ),
             "ai_market_risk": (
                 "Primary product score: calibrated 15m V2 risk, Matrix excluded from risk model"
+            ),
+            "direction_model": (
+                "1h topology first-hit direction model; research preview"
             ),
         },
         "generated_at": utc_iso(),
@@ -917,15 +913,9 @@ def health() -> dict[str, Any]:
         cache = dict(radar_cache)
 
     return {
+        "ok": cache.get("status") in {"ONLINE", "DEGRADED"},
         "status": cache.get("status"),
-        "engine": cache.get("engine"),
-        "last_success_at": cache.get(
-            "last_success_at"
-        ),
-        "symbol_count": cache.get(
-            "symbol_count",
-            0,
-        ),
+        "generated_at": cache.get("generated_at"),
         "error": cache.get("error"),
     }
 
@@ -936,30 +926,8 @@ def radar() -> dict[str, Any]:
         return dict(radar_cache)
 
 
-@app.get("/radar/{symbol}")
-def radar_symbol(
-    symbol: str,
-) -> dict[str, Any]:
-    requested = symbol.upper()
-
-    with cache_lock:
-        items = list(
-            radar_cache.get("radar", [])
-        )
-
-    for item in items:
-        if item["symbol"] == requested:
-            return item
-
-    raise HTTPException(
-        status_code=404,
-        detail=f"Symbol not found: {requested}",
-    )
-
-
 @app.post("/radar/refresh")
-async def force_refresh() -> dict[str, Any]:
-    await asyncio.to_thread(refresh_cache)
-
+def radar_refresh() -> dict[str, Any]:
+    refresh_cache()
     with cache_lock:
         return dict(radar_cache)
