@@ -54,16 +54,12 @@ def extract_snapshot_features(payload_json: Any) -> dict[str, float]:
         else np.nan
     )
 
-    # Direction-independent event probability is not itself directional, but
-    # it is retained for later conditioning / interaction analysis.
     event_pressure = (
         liquidity_pressure_score / 100.0
         if np.isfinite(liquidity_pressure_score)
         else np.nan
     )
 
-    # Distance-weighted liquidity attraction. Positive means more/closer
-    # liquidity above current price; negative means more/closer below.
     eps = 1e-6
     upper_pull = (
         upper_volume / max(upper_distance, eps)
@@ -119,15 +115,11 @@ def add_rolling_features(group: pd.DataFrame, window: int) -> pd.DataFrame:
             .apply(lambda x: linear_slope(x.to_numpy()), raw=False)
         )
 
-    # Four deliberately simple hypotheses. We report all of them instead of
-    # tuning weights on this tiny live sample.
     g["score_current_volume"] = g["volume_balance"]
     g["score_volume_flow"] = g["volume_balance_delta"]
     g["score_current_pull"] = g["distance_weighted_balance"]
     g["score_pull_flow"] = g["distance_weighted_balance_delta"]
 
-    # Diagnostic consensus, not a trained model. Components are bounded near
-    # [-1, 1], so equal weighting is intentionally transparent.
     g["score_consensus"] = g[
         [
             "score_current_volume",
@@ -304,11 +296,14 @@ def main() -> None:
     extracted = pd.DataFrame(raw["payload_json"].map(extract_snapshot_features).tolist(), index=raw.index)
     frame = pd.concat([raw.drop(columns=["payload_json"]), extracted], axis=1)
 
-    frame = (
-        frame.groupby("symbol", group_keys=False, sort=False)
-        .apply(lambda g: add_rolling_features(g, args.window), include_groups=True)
-        .reset_index(drop=True)
-    )
+    # Pandas 3 no longer allows include_groups=True. Keep the symbol column
+    # inside each group by iterating explicitly; this is stable across pandas
+    # 2.x and 3.x and avoids groupby.apply deprecation differences.
+    rolling_parts = [
+        add_rolling_features(group, args.window)
+        for _, group in frame.groupby("symbol", sort=False)
+    ]
+    frame = pd.concat(rolling_parts, ignore_index=True)
 
     score_columns = [
         "score_current_volume",
