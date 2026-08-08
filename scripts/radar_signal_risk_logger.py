@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 HORIZONS = (5, 15, 30, 60)
+DIRECTION_HIGH_CONFIDENCE = 0.65
 
 
 def utc_now() -> datetime:
@@ -32,7 +33,7 @@ def as_float(value: Any) -> float | None:
 
 
 def fetch_json(url: str, timeout: float) -> dict[str, Any]:
-    req = urllib.request.Request(url, headers={"User-Agent": "LiqHeat-Risk-Research-Logger/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "LiqHeat-Risk-Research-Logger/1.1"})
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
@@ -66,6 +67,47 @@ def risk_snapshot(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def direction_snapshot(item: dict[str, Any], matrix_signal: str | None) -> dict[str, Any]:
+    direction = item.get("direction_model") or {}
+    available = bool(direction.get("available"))
+
+    prediction = direction.get("prediction") if available else None
+    if prediction is None:
+        prediction = item.get("direction_prediction")
+    prediction = str(prediction).upper() if prediction else None
+
+    confidence = as_float(direction.get("confidence"))
+    if confidence is None:
+        confidence = as_float(item.get("direction_model_confidence"))
+
+    probability_upper = as_float(direction.get("probability_upper_first"))
+    probability_lower = as_float(direction.get("probability_lower_first"))
+
+    agreement: int | None = None
+    if matrix_signal in {"LONG", "SHORT"} and prediction in {"UPPER_FIRST", "LOWER_FIRST"}:
+        agreement = 1 if (
+            (matrix_signal == "LONG" and prediction == "UPPER_FIRST")
+            or (matrix_signal == "SHORT" and prediction == "LOWER_FIRST")
+        ) else 0
+
+    high_conf_agreement: int | None = None
+    if agreement is not None and confidence is not None:
+        high_conf_agreement = 1 if (
+            agreement == 1 and confidence >= DIRECTION_HIGH_CONFIDENCE
+        ) else 0
+
+    return {
+        "direction_available": 1 if available else 0,
+        "direction_prediction": prediction,
+        "direction_confidence": confidence,
+        "direction_probability_upper": probability_upper,
+        "direction_probability_lower": probability_lower,
+        "direction_model_version": direction.get("model_version"),
+        "direction_agrees_with_matrix": agreement,
+        "direction_agrees_with_matrix_high_conf": high_conf_agreement,
+    }
+
+
 def connect_db(path: Path) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
@@ -74,6 +116,15 @@ def connect_db(path: Path) -> sqlite3.Connection:
     conn.execute("PRAGMA synchronous=NORMAL")
     create_schema(conn)
     return conn
+
+
+def ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) -> None:
+    existing = {
+        row["name"]
+        for row in conn.execute(f"PRAGMA table_info({table})").fetchall()
+    }
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
 
 
 def create_schema(conn: sqlite3.Connection) -> None:
@@ -109,6 +160,14 @@ def create_schema(conn: sqlite3.Connection) -> None:
             risk_band TEXT,
             p_high REAL,
             p_extreme REAL,
+            direction_available INTEGER NOT NULL DEFAULT 0,
+            direction_prediction TEXT,
+            direction_confidence REAL,
+            direction_probability_upper REAL,
+            direction_probability_lower REAL,
+            direction_model_version TEXT,
+            direction_agrees_with_matrix INTEGER,
+            direction_agrees_with_matrix_high_conf INTEGER,
             radar_generated_at TEXT,
             source_age_seconds REAL,
             min_seen_price REAL,
@@ -119,8 +178,27 @@ def create_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+
+    # Existing research DBs are migrated in place without dropping history.
+    migrations = {
+        "direction_available": "INTEGER NOT NULL DEFAULT 0",
+        "direction_prediction": "TEXT",
+        "direction_confidence": "REAL",
+        "direction_probability_upper": "REAL",
+        "direction_probability_lower": "REAL",
+        "direction_model_version": "TEXT",
+        "direction_agrees_with_matrix": "INTEGER",
+        "direction_agrees_with_matrix_high_conf": "INTEGER",
+    }
+    for column, ddl in migrations.items():
+        ensure_column(conn, "signal_events", column, ddl)
+
     conn.execute("CREATE INDEX IF NOT EXISTS idx_signal_events_symbol_ts ON signal_events(symbol, event_epoch)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_signal_events_type ON signal_events(event_type)")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_signal_events_direction_agreement "
+        "ON signal_events(direction_agrees_with_matrix, direction_agrees_with_matrix_high_conf)"
+    )
     conn.commit()
 
 
@@ -133,6 +211,7 @@ def insert_event(conn: sqlite3.Connection, item: dict[str, Any], event_type: str
 
     matrix = item.get("matrix") or {}
     risk = risk_snapshot(item)
+    direction = direction_snapshot(item, signal)
     event_id = str(uuid.uuid4())
     now = utc_now()
     alignment = as_float(matrix.get("alignment_score"))
@@ -147,9 +226,13 @@ def insert_event(conn: sqlite3.Connection, item: dict[str, Any], event_type: str
             event_id,event_ts,event_epoch,event_type,symbol,signal,entry_price,
             matrix_1m,matrix_15m,matrix_1h,matrix_4h,matrix_1d,matrix_alignment,
             liquidity_pressure,risk_available,risk_score,raw_risk_score,risk_band,
-            p_high,p_extreme,radar_generated_at,source_age_seconds,min_seen_price,
+            p_high,p_extreme,
+            direction_available,direction_prediction,direction_confidence,
+            direction_probability_upper,direction_probability_lower,direction_model_version,
+            direction_agrees_with_matrix,direction_agrees_with_matrix_high_conf,
+            radar_generated_at,source_age_seconds,min_seen_price,
             max_seen_price,last_seen_price,last_seen_at
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             event_id, iso(now), now.timestamp(), event_type, symbol, signal, price,
@@ -157,13 +240,21 @@ def insert_event(conn: sqlite3.Connection, item: dict[str, Any], event_type: str
             matrix_label(item, "4h"), matrix_label(item, "1d"), alignment,
             liquidity_pressure, risk["risk_available"], risk["risk_score"],
             risk["raw_risk_score"], risk["risk_band"], risk["p_high"], risk["p_extreme"],
+            direction["direction_available"], direction["direction_prediction"],
+            direction["direction_confidence"], direction["direction_probability_upper"],
+            direction["direction_probability_lower"], direction["direction_model_version"],
+            direction["direction_agrees_with_matrix"],
+            direction["direction_agrees_with_matrix_high_conf"],
             item.get("generated_at"), as_float(item.get("age_seconds")), price, price, price, iso(now),
         ),
     )
     conn.commit()
     print(
         f"[{iso(now)}] {event_type} {symbol} {signal} @ {price:g} "
-        f"risk={risk['risk_band'] or 'N/A'} score={risk['risk_score']} raw={risk['raw_risk_score']}",
+        f"risk={risk['risk_band'] or 'N/A'} score={risk['risk_score']} "
+        f"direction={direction['direction_prediction'] or 'N/A'} "
+        f"conf={direction['direction_confidence']} "
+        f"agree={direction['direction_agrees_with_matrix']}",
         flush=True,
     )
     return event_id
@@ -212,7 +303,9 @@ def update_open_events(conn: sqlite3.Connection, prices: dict[str, float], now: 
             )
             print(
                 f"[{iso(now)}] RESOLVE {h}m {row['symbol']} {row['signal']} "
-                f"signed={signed_bps:+.1f}bps win={win} risk={row['risk_band'] or 'N/A'}",
+                f"signed={signed_bps:+.1f}bps win={win} risk={row['risk_band'] or 'N/A'} "
+                f"direction={row['direction_prediction'] or 'N/A'} "
+                f"agree={row['direction_agrees_with_matrix']}",
                 flush=True,
             )
     conn.commit()
@@ -238,6 +331,11 @@ def run(args: argparse.Namespace) -> None:
     last_signals = load_last_signals(conn)
     print(f"Signal/risk logger started: {db_path}", flush=True)
     print(f"Polling {args.url} every {args.interval:g}s", flush=True)
+    print(
+        f"Direction agreement logging enabled; high-confidence threshold="
+        f"{DIRECTION_HIGH_CONFIDENCE:.2f}",
+        flush=True,
+    )
 
     while True:
         started = time.monotonic()
@@ -278,7 +376,12 @@ def run(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Log 1m Matrix signal flips with live AI risk and forward outcomes")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Log 1m Matrix signal flips with live AI risk, topology direction "
+            "agreement, and forward outcomes"
+        )
+    )
     parser.add_argument("--url", default="http://127.0.0.1:8000/radar")
     parser.add_argument("--db", default="data/research/radar_signal_risk/radar_signal_risk.sqlite3")
     parser.add_argument("--interval", type=float, default=5.0)
