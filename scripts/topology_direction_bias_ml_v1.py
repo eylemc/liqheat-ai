@@ -180,41 +180,42 @@ def main():
         use_best_model=True,
     )
 
-MODEL_DIR = (
-    PROJECT_ROOT
-    / "data"
-    / "models"
-    / "topology_direction_v1"
-)
-
-MODEL_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-model.save_model(
-    MODEL_DIR / "model.cbm"
-)
-
-with open(
-    MODEL_DIR / "features.json",
-    "w",
-) as f:
-    json.dump(
-        {
-            "features": ALL_FEATURES,
-            "categorical_features": CATEGORICAL_FEATURES,
-            "target": "sweep_code_1h",
-            "positive_class": "UPPER_FIRST",
-            "negative_class": "LOWER_FIRST",
-        },
-        f,
-        indent=2,
+    MODEL_DIR = (
+        PROJECT_ROOT
+        / "data"
+        / "models"
+        / "topology_direction_v1"
     )
 
-print()
-print("Saved model:")
-print(MODEL_DIR / "model.cbm")
+    MODEL_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    model.save_model(
+        MODEL_DIR / "model.cbm"
+    )
+
+    with open(
+        MODEL_DIR / "features.json",
+        "w",
+    ) as f:
+        json.dump(
+            {
+                "features": ALL_FEATURES,
+                "categorical_features": CATEGORICAL_FEATURES,
+                "target": "sweep_code_1h",
+                "positive_class": "UPPER_FIRST",
+                "negative_class": "LOWER_FIRST",
+            },
+            f,
+            indent=2,
+        )
+
+    print()
+    print("Saved model:")
+    print(MODEL_DIR / "model.cbm")
+
     results = {}
 
     for name, X, y in [
