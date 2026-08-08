@@ -96,9 +96,14 @@
   refreshDirection();
   setInterval(refreshDirection, REFRESH_MS);
 
-  const observer = new MutationObserver(() => {
-    if (latestPayload) injectDirectionPanels(latestPayload);
-  });
+  // Watch only direct replacements/additions under #radarCards. Do not observe
+  // subtree mutations, because inserting the Direction Bias panel itself would
+  // otherwise retrigger this observer and create an infinite mutation loop.
   const cards = document.getElementById("radarCards");
-  if (cards) observer.observe(cards, { childList: true, subtree: true });
+  if (cards) {
+    const observer = new MutationObserver(() => {
+      if (latestPayload) injectDirectionPanels(latestPayload);
+    });
+    observer.observe(cards, { childList: true, subtree: false });
+  }
 })();
