@@ -20,10 +20,17 @@ from fastapi.staticfiles import StaticFiles
 from supabase import create_client
 
 from src.build_liq_topology_v2 import build_feature
+from src.liquidation_heatmap_live import build_compact_heatmap
 from src.matrix_live import (
     combine_matrix_topology,
     get_live_matrix,
 )
+from src.market_risk_live import (
+    add_dynamic_features_live,
+    market_risk_engine,
+    sample_live_history,
+)
+from src.risk_state_stabilizer import risk_state_stabilizer
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +39,8 @@ ENV_PATH = PROJECT_ROOT / ".env"
 
 REFRESH_SECONDS = 75
 TIMEFRAME = "24h"
+RISK_TIMEFRAME = "1h"
+RISK_HISTORY_LIMIT = 256
 
 SYMBOLS = [
     "BTCUSDT",
@@ -352,6 +361,58 @@ def add_ml_features(
     return frame
 
 
+def fetch_market_risk_history(symbol: str) -> list[dict[str, Any]]:
+    """Fetch enough 1h-topology snapshots to reproduce 15m dynamic V2 features."""
+    response = (
+        supabase
+        .table("liq_logging")
+        .select(
+            "id,logged_at,symbol,timeframe,current_price,"
+            "liquidation_count,price_min,price_max,payload"
+        )
+        .eq("symbol", str(symbol).upper())
+        .eq("timeframe", RISK_TIMEFRAME)
+        .order("logged_at", desc=True)
+        .limit(RISK_HISTORY_LIMIT)
+        .execute()
+    )
+    rows = list(response.data or [])
+    rows.reverse()
+    return rows
+
+
+def build_ai_market_risk(symbol: str) -> dict[str, Any]:
+    requested = str(symbol).upper()
+    if requested not in {"BTCUSDT", "ETHUSDT", "SOLUSDT"}:
+        return {
+            "available": False,
+            "reason": "SYMBOL_NOT_TRAINED",
+            "symbol": requested,
+            "horizon_minutes": 15,
+        }
+
+    rows = fetch_market_risk_history(requested)
+    topology_rows: list[dict[str, Any]] = []
+    for row in rows:
+        feature = topology_feature_from_live_row(row)
+        if feature is not None:
+            topology_rows.append(feature)
+
+    if not topology_rows:
+        return {
+            "available": False,
+            "reason": "NO_LIVE_HISTORY",
+            "symbol": requested,
+            "horizon_minutes": 15,
+        }
+
+    frame = add_ml_features(topology_rows)
+    frame = sample_live_history(frame)
+    frame = add_dynamic_features_live(frame)
+    raw_risk = market_risk_engine.score_latest(frame, requested)
+    return risk_state_stabilizer.update(raw_risk)
+
+
 def classify_direction(
     predicted_event: str,
     direction_confidence: float,
@@ -536,6 +597,19 @@ def build_live_radar() -> dict[str, Any]:
                 f"{type(exc).__name__}: {exc}"
             )
 
+        try:
+            ai_market_risk = build_ai_market_risk(
+                str(feature_row["symbol"])
+            )
+        except Exception as exc:
+            ai_market_risk = {
+                "available": False,
+                "reason": "LIVE_INFERENCE_ERROR",
+                "symbol": str(feature_row["symbol"]),
+                "horizon_minutes": 15,
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+
         combined = combine_matrix_topology(
             liquidity_pressure=event_probability,
             topology_direction=topology_direction,
@@ -566,6 +640,10 @@ def build_live_radar() -> dict[str, Any]:
 
         feature_id = str(feature_row["id"])
         source_row = source_by_id.get(feature_id, {})
+        compact_heatmap = build_compact_heatmap(
+            source_row.get("payload") or {},
+            json_safe_number(feature_row["current_price"]) or 0.0,
+        )
 
         results.append({
             "symbol": str(feature_row["symbol"]),
@@ -583,6 +661,10 @@ def build_live_radar() -> dict[str, Any]:
             "current_price": json_safe_number(
                 feature_row["current_price"]
             ),
+            "liquidation_heatmap": compact_heatmap,
+            # New primary product output: direction-independent 15m AI market risk.
+            "ai_market_risk": ai_market_risk,
+
             # Backward-compatible raw probability.
             "score": round(event_probability, 6),
 
@@ -686,9 +768,13 @@ def build_live_radar() -> dict[str, Any]:
             ),
         })
 
+    # Matrix AI Radar prioritizes the safest trained 15m conditions.
+    # Untrained markets remain visible after scored markets.
     results.sort(
-        key=lambda item: item["radar_score"],
-        reverse=True,
+        key=lambda item: (
+            0 if (item.get("ai_market_risk") or {}).get("available") else 1,
+            float((item.get("ai_market_risk") or {}).get("risk_score", 999.0)),
+        )
     )
 
     for rank, item in enumerate(results, start=1):
@@ -713,7 +799,7 @@ def build_live_radar() -> dict[str, Any]:
     )
 
     return {
-        "engine": "liqheat-radar-v2-matrix-topology",
+        "engine": "matrix-ai-radar-v2-live",
         "status": "ONLINE",
         "source": {
             "topology": "supabase.liq_logging",
@@ -727,7 +813,10 @@ def build_live_radar() -> dict[str, Any]:
                 "VWMA(20) OHLC4 multi-timeframe regime"
             ),
             "radar_score": (
-                "Rule-based Matrix + Topology opportunity score"
+                "Legacy Matrix + Topology opportunity score; retained for diagnostics"
+            ),
+            "ai_market_risk": (
+                "Primary product score: calibrated 15m V2 risk, Matrix excluded from risk model"
             ),
         },
         "generated_at": utc_iso(),
