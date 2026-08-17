@@ -318,9 +318,9 @@ function heatExplanation(item) {
   const risk = riskData(item);
   if (!risk) {
     if (item.ai_market_risk?.reason === "SYMBOL_NOT_TRAINED") {
-      return "15m Market Heat is not trained for this market yet. Matrix scalp idea remains available.";
+      return "Near-Term Market Heat is not trained for this market yet. Matrix scalp idea remains available.";
     }
-    return "15m Market Heat model is temporarily unavailable. Matrix scalp idea remains available.";
+    return "Near-Term Market Heat model is temporarily unavailable. Matrix scalp idea remains available.";
   }
   const high = Math.round(Number(risk.p_high || 0) * 100);
   const extreme = Math.round(Number(risk.p_extreme || 0) * 100);
@@ -422,7 +422,7 @@ function renderCard(item) {
       <div class="price">${formatNumber(item.current_price, 6)}</div>
       <div class="ai-risk-hero">
         <div class="matrix-direction-hero" style="margin-top:0;margin-bottom:12px"><span>Scalp idea · 1M Matrix</span><strong class="${ideaCls}">${idea}</strong></div>
-        <div class="ai-risk-heading"><span>15M MARKET HEAT</span><span class="risk-band-pill risk-${heatClass(item)}">${band}</span></div>
+        <div class="ai-risk-heading"><span>NEAR-TERM MARKET HEAT</span><span class="risk-band-pill risk-${heatClass(item)}">${band}</span></div>
         <div class="ai-risk-score"><strong>${score === null ? "—" : Math.round(score)}</strong><span>${score === null ? "" : "/ 100"}</span></div>
         <div class="ai-risk-sub">15m movement percentile vs historical calibration</div>
       </div>
@@ -458,7 +458,7 @@ function renderTableRow(item) {
 
 function normalizeHeadings() {
   const subtitle = document.querySelector('.brand-row p');
-  if (subtitle) subtitle.textContent = '1M Matrix Scalp Idea + 15m Market Heat';
+  if (subtitle) subtitle.textContent = '1M Matrix Scalp Idea + Near-Term Market Heat';
   const heading = document.querySelector('.section-heading h2');
   if (heading) heading.textContent = 'Matrix scalp idea with near-term Market Heat';
   document.querySelectorAll('th').forEach((th) => {
