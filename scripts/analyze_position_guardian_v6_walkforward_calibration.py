@@ -369,7 +369,7 @@ def main() -> None:
 
                             cal_eval = evaluate_threshold(y_cal[cal_mask], p_cal[cal_mask], threshold["threshold"])
                             test_eval = evaluate_threshold(y_test[test_mask], p_test[test_mask], threshold["threshold"])
-                            base = {
+                            result_base = {
                                 "side": side,
                                 "horizon_minutes": horizon,
                                 "feature_group": group_name,
@@ -379,7 +379,7 @@ def main() -> None:
                                 "calibration_method": calibrator.method,
                             }
                             threshold_rows.append({
-                                **base,
+                                **result_base,
                                 "threshold": threshold["threshold"],
                                 "threshold_source": source,
                                 "fallback": threshold.get("fallback", False),
@@ -388,7 +388,7 @@ def main() -> None:
                                 "calibration_alerts": cal_eval["alerts"],
                             })
                             fold_metric_rows.append({
-                                **base,
+                                **result_base,
                                 "train_rows": len(train),
                                 "calibration_rows": int(cal_mask.sum()),
                                 "test_rows": int(test_mask.sum()),
