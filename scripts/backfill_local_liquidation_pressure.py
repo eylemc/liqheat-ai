@@ -14,7 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from catboost import CatBoostClassifier
+from catboost import CatBoostClassifier, Pool
 
 DEFAULT_INPUT = Path("data/features/liq_topology_v2_ml_features.parquet")
 DEFAULT_OUTPUT = Path("data/research/liquidation_pressure/local_historical_pressure.parquet")
@@ -22,6 +22,7 @@ DEFAULT_FEATURES_OUTPUT = Path("data/research/liquidation_pressure/local_histori
 MODEL_DIR = PROJECT_ROOT / "models" / "squeeze_v1"
 DEFAULT_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
 DEFAULT_TIMEFRAME = "24h"
+DEFAULT_CATEGORICAL_FEATURES = ["symbol", "nearest_side"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -67,6 +68,19 @@ def rolling_features(group: pd.DataFrame) -> pd.DataFrame:
 
     g["acceleration_30_vs_120"] = g["mean_30m"] - g["mean_120m"]
     return g
+
+
+def prepare_model_frame(batch: pd.DataFrame, feature_columns: list[str]) -> tuple[pd.DataFrame, list[str]]:
+    x = batch[feature_columns].copy()
+    cat_features = [c for c in DEFAULT_CATEGORICAL_FEATURES if c in x.columns]
+
+    for col in feature_columns:
+        if col in cat_features:
+            x[col] = x[col].astype("string").fillna("<MISSING>").astype(str)
+        else:
+            x[col] = pd.to_numeric(x[col], errors="coerce")
+
+    return x, cat_features
 
 
 def main() -> int:
@@ -130,7 +144,8 @@ def main() -> int:
     for start in range(0, len(df), args.batch_size):
         end = min(start + args.batch_size, len(df))
         batch = df.iloc[start:end]
-        probabilities = model.predict_proba(batch[feature_columns])
+        x, cat_features = prepare_model_frame(batch, feature_columns)
+        probabilities = model.predict_proba(Pool(x, cat_features=cat_features))
         long_p = probabilities[:, idx[-1]].astype(float)
         none_p = probabilities[:, idx[0]].astype(float)
         short_p = probabilities[:, idx[1]].astype(float)
