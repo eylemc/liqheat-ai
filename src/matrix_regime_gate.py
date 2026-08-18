@@ -23,7 +23,7 @@ LIVE_BAR_LIMIT = 5000
 CACHE_SECONDS = 60
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-BASELINE_PATH = (
+BTC_BASELINE_PATH = (
     PROJECT_ROOT
     / "data"
     / "research"
@@ -32,7 +32,7 @@ BASELINE_PATH = (
 
 _session = requests.Session()
 _session.headers.update({
-    "User-Agent": "LiqHeat-Matrix-Regime-Gate/1.0",
+    "User-Agent": "LiqHeat-Matrix-Regime-Gate/2.0",
     "Accept": "application/json",
 })
 
@@ -171,8 +171,8 @@ def _build_matrix_features(candles: pd.DataFrame) -> pd.DataFrame:
     path = close.diff().abs().rolling(ER_PERIOD, min_periods=ER_PERIOD).sum()
     frame["er"] = change / path.replace(0, np.nan)
 
-    # Frozen research definition. Intentionally uses CLOSE as denominator,
-    # while abs VWMA distance comes from canonical Matrix / VWMA distance.
+    # Frozen BTC research definition. We transfer this exact feature definition
+    # cross-symbol so Radar presents one consistent 1H Matrix risk gate.
     frame["abs_vwma_dist"] = frame["distance_to_vwma_pct"].abs()
     frame["channel_width"] = (
         (frame["upper"] - frame["lower"]).abs()
@@ -201,18 +201,21 @@ def _build_matrix_features(candles: pd.DataFrame) -> pd.DataFrame:
 def _prior_percentile(history: list[float], current: float) -> float | None:
     if not math.isfinite(current):
         return None
-    finite = np.asarray([x for x in history[-SCORE_WINDOW:] if math.isfinite(x)], dtype=float)
+    finite = np.asarray(
+        [x for x in history[-SCORE_WINDOW:] if math.isfinite(x)],
+        dtype=float,
+    )
     if len(finite) < SCORE_MIN:
         return None
     return float(np.mean(finite <= current) * 100.0)
 
 
-def _load_baseline() -> pd.DataFrame:
-    if not BASELINE_PATH.exists():
+def _load_btc_baseline() -> pd.DataFrame:
+    if not BTC_BASELINE_PATH.exists():
         raise FileNotFoundError(
-            f"Frozen regime baseline not found: {BASELINE_PATH}"
+            f"Frozen regime baseline not found: {BTC_BASELINE_PATH}"
         )
-    baseline = pd.read_csv(BASELINE_PATH)
+    baseline = pd.read_csv(BTC_BASELINE_PATH)
     if "time" not in baseline.columns:
         raise RuntimeError("Regime baseline is missing the time column")
     baseline["time"] = pd.to_datetime(baseline["time"], utc=True, errors="coerce")
@@ -249,24 +252,47 @@ def _event_from_row(row: pd.Series, source: str) -> dict[str, Any]:
     }
 
 
-def _build_gate(symbol: str) -> dict[str, Any]:
-    requested = str(symbol).upper()
-    if requested != "BTCUSDT":
-        return {
-            "available": False,
-            "reason": "SYMBOL_NOT_VALIDATED",
-            "symbol": requested,
-            "timeframe": "1h",
-            "threshold": VALID_THRESHOLD,
-            "research_status": "BTCUSDT_1H_ONLY",
-        }
+def _score_live_flips(matrix: pd.DataFrame) -> list[dict[str, Any]]:
+    flips = matrix[matrix["flip"] != 0].copy()
+    flips["side"] = np.where(flips["flip"] == 1, "BUY", "SELL")
+    flips["time"] = flips["close_time"]
+    flips = flips.dropna(subset=["er", "channel_pctile", "norm_disp"])
 
-    baseline = _load_baseline()
-    candles = _fetch_closed_1h(requested)
-    if len(candles) < PCTL_WINDOW + 50:
-        raise RuntimeError(f"Insufficient live 1H history: {len(candles)} bars")
+    er_history: list[float] = []
+    ch_history: list[float] = []
+    nd_history: list[float] = []
+    scored: list[dict[str, Any]] = []
 
-    matrix = _build_matrix_features(candles)
+    for _, row in flips.sort_values("time").iterrows():
+        er = float(row["er"])
+        ch = float(row["channel_pctile"])
+        nd = float(row["norm_disp"])
+        er_rank = _prior_percentile(er_history, er)
+        ch_rank = _prior_percentile(ch_history, ch)
+        nd_rank = _prior_percentile(nd_history, nd)
+        score = None
+        if er_rank is not None and ch_rank is not None and nd_rank is not None:
+            score = (er_rank + ch_rank + nd_rank) / 3.0
+            scored.append({
+                "time": row["time"],
+                "side": row["side"],
+                "er": er,
+                "channel_pctile": ch,
+                "norm_disp": nd,
+                "er_rank": er_rank,
+                "channel_rank": ch_rank,
+                "norm_disp_rank": nd_rank,
+                "regime_score": score,
+            })
+        er_history.append(er)
+        ch_history.append(ch)
+        nd_history.append(nd)
+
+    return scored
+
+
+def _build_btc_gate(matrix: pd.DataFrame) -> tuple[dict[str, Any], int, str]:
+    baseline = _load_btc_baseline()
     live_flips = matrix[matrix["flip"] != 0].copy()
     live_flips["side"] = np.where(live_flips["flip"] == 1, "BUY", "SELL")
     live_flips["time"] = live_flips["close_time"]
@@ -274,7 +300,6 @@ def _build_gate(symbol: str) -> dict[str, Any]:
 
     baseline_end = baseline["time"].max()
     new_flips = live_flips[live_flips["time"] > baseline_end].copy()
-
     er_history = baseline["er"].astype(float).tolist()
     ch_history = baseline["channel_pctile"].astype(float).tolist()
     nd_history = baseline["norm_disp"].astype(float).tolist()
@@ -305,23 +330,21 @@ def _build_gate(symbol: str) -> dict[str, Any]:
         ch_history.append(ch)
         nd_history.append(nd)
 
-    if scored_new:
-        latest_row = pd.Series(scored_new[-1])
-        latest_event = _event_from_row(latest_row, "live")
-    else:
-        latest_event = _event_from_row(baseline.iloc[-1], "baseline")
+    latest_event = (
+        _event_from_row(pd.Series(scored_new[-1]), "live")
+        if scored_new
+        else _event_from_row(baseline.iloc[-1], "baseline")
+    )
+    return latest_event, len(scored_new), "FROZEN_VALIDATED_GATE"
 
-    valid_candidates: list[dict[str, Any]] = []
-    baseline_valid = baseline[
-        pd.to_numeric(baseline.get("regime_score"), errors="coerce") >= VALID_THRESHOLD
-    ]
-    if not baseline_valid.empty:
-        valid_candidates.append(_event_from_row(baseline_valid.iloc[-1], "baseline"))
-    for row in scored_new:
-        if row.get("regime_score") is not None and float(row["regime_score"]) >= VALID_THRESHOLD:
-            valid_candidates.append(_event_from_row(pd.Series(row), "live"))
-    last_valid = valid_candidates[-1] if valid_candidates else None
 
+def _build_gate(symbol: str) -> dict[str, Any]:
+    requested = str(symbol).upper()
+    candles = _fetch_closed_1h(requested)
+    if len(candles) < PCTL_WINDOW + 50:
+        raise RuntimeError(f"Insufficient live 1H history: {len(candles)} bars")
+
+    matrix = _build_matrix_features(candles)
     last_bar = matrix.iloc[-1]
     flip_positions = np.flatnonzero(matrix["flip"].to_numpy() != 0)
     bars_since_flip = (
@@ -330,21 +353,39 @@ def _build_gate(symbol: str) -> dict[str, Any]:
     trend = int(last_bar["trend"])
     trend_label = "BUY" if trend == 1 else "SELL" if trend == -1 else "NEUTRAL"
 
+    if requested == "BTCUSDT":
+        latest_event, new_count, research_status = _build_btc_gate(matrix)
+        baseline_last_time = _iso(_load_btc_baseline()["time"].max())
+    else:
+        scored = _score_live_flips(matrix)
+        if not scored:
+            raise RuntimeError(
+                f"Insufficient scored 1H Matrix flips for {requested}"
+            )
+        latest_event = _event_from_row(pd.Series(scored[-1]), "live_transfer")
+        new_count = 0
+        baseline_last_time = None
+        research_status = "CROSS_SYMBOL_TRANSFER"
+
+    # Product-facing risk language is intentionally binary because the frozen
+    # research gate is binary: score >= threshold is confirmed, otherwise risky.
+    risk_level = "LOW RISK" if latest_event["valid"] else "HIGH RISK"
+
     return {
         "available": True,
         "symbol": requested,
         "timeframe": "1h",
         "threshold": VALID_THRESHOLD,
         "status": latest_event["status"],
+        "risk_level": risk_level,
         "regime_score": latest_event["score"],
         "matrix_trend": trend_label,
         "bars_since_flip": bars_since_flip,
         "latest_flip": latest_event,
-        "last_valid_signal": last_valid,
-        "new_flips_since_baseline": len(scored_new),
-        "baseline_last_time": _iso(baseline_end),
+        "new_flips_since_baseline": new_count,
+        "baseline_last_time": baseline_last_time,
         "live_last_close": _iso(last_bar["close_time"]),
-        "research_status": "FROZEN_VALIDATED_GATE",
+        "research_status": research_status,
         "research_spec": {
             "er_period": ER_PERIOD,
             "channel_percentile_window": PCTL_WINDOW,
@@ -353,6 +394,7 @@ def _build_gate(symbol: str) -> dict[str, Any]:
             "score_min_flips": SCORE_MIN,
             "channel_denominator": "close",
             "distance_denominator": "vwma",
+            "threshold_origin": "BTCUSDT_1H_FROZEN",
         },
     }
 
