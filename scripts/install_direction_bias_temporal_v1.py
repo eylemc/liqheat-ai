@@ -35,6 +35,20 @@ def main() -> int:
         '            "direction_model": direction_model,\n            "direction_bias_temporal": direction_bias_temporal,\n',
         "expose temporal Direction Bias",
     )
+
+    # LP Confirmation must confirm the stabilized temporal bias, not the raw
+    # one-snapshot model output. This patch is intentionally idempotent so the
+    # installer can be re-run on machines that already have LP V2 installed.
+    old_lp_call = '''            lp_confirmation_v2 = build_lp_confirmation(\n                str(feature_row["symbol"]),\n                direction_model,\n            )'''
+    new_lp_call = '''            lp_confirmation_v2 = build_lp_confirmation(\n                str(feature_row["symbol"]),\n                direction_bias_temporal if direction_bias_temporal.get("available") else direction_model,\n            )'''
+    if new_lp_call in text:
+        print("Already patched: LP uses temporal Direction Bias")
+    elif old_lp_call in text:
+        text = text.replace(old_lp_call, new_lp_call, 1)
+        print("Patched: LP uses temporal Direction Bias")
+    else:
+        print("LP confirmation call not present; skipped temporal LP binding")
+
     API.write_text(text, encoding="utf-8")
     print("Temporal Direction Bias V1 integration installed.")
     return 0
