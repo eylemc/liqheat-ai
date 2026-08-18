@@ -10,6 +10,7 @@ DB_PATH = PROJECT_ROOT / "data/research/liquidation_pressure/liquidation_pressur
 
 CONFIDENCE_THRESHOLD = 0.60
 MIN_SAMPLES_120M = 60
+MIN_PERSISTENCE_60M = 55.0
 MIN_PERSISTENCE_120M = 60.0
 
 
@@ -87,9 +88,10 @@ def build_lp_confirmation(symbol: str, direction_model: dict[str, Any]) -> dict[
     base = {
         "available": False,
         "state": "NEUTRAL",
-        "method": "LP_TEMPORAL_2H_CONSENSUS_V1",
+        "method": "LP_TEMPORAL_MULTIWINDOW_CONSENSUS_V2",
         "confidence_threshold": CONFIDENCE_THRESHOLD,
         "min_samples_120m": MIN_SAMPLES_120M,
+        "min_persistence_60m": MIN_PERSISTENCE_60M,
         "min_persistence_120m": MIN_PERSISTENCE_120M,
     }
 
@@ -103,57 +105,78 @@ def build_lp_confirmation(symbol: str, direction_model: dict[str, Any]) -> dict[
         return base
 
     n120 = int(features.get("sample_count_120m") or 0)
+    persistence60 = _finite(features.get("persistence_60m"))
     persistence120 = _finite(features.get("persistence_120m"))
     if n120 < MIN_SAMPLES_120M:
         base.update({
             "reason": "INSUFFICIENT_2H_HISTORY",
             "sample_count_120m": n120,
+            "persistence_60m": persistence60,
             "persistence_120m": persistence120,
         })
         return base
 
-    current_sign = _sign(_finite(features.get("signed_now")))
-    mean_sign = _sign(_finite(features.get("mean_120m")))
-    slope_sign = _sign(_finite(features.get("slope_120m")))
+    mean30 = _finite(features.get("mean_30m"))
+    mean60 = _finite(features.get("mean_60m"))
+    mean120 = _finite(features.get("mean_120m"))
+    sign30 = _sign(mean30)
+    sign60 = _sign(mean60)
+    sign120 = _sign(mean120)
 
-    votes = [current_sign, mean_sign, slope_sign]
-    agree_votes = sum(1 for v in votes if v == bias_sign)
-    oppose_votes = sum(1 for v in votes if v == -bias_sign)
-    stable = persistence120 is not None and persistence120 >= MIN_PERSISTENCE_120M
+    stable = (
+        persistence60 is not None
+        and persistence60 >= MIN_PERSISTENCE_60M
+        and persistence120 is not None
+        and persistence120 >= MIN_PERSISTENCE_120M
+    )
 
+    # Deliberately exclude signed_now and slope from the state decision.
+    # A 2H confirmation should not flip because of one fresh snapshot or a noisy
+    # regression slope. The 60m and 120m pressure regimes must agree before a
+    # directional confirmation/conflict is emitted. 30m remains diagnostic and
+    # can warn that a shorter-term transition has begun without changing state.
     if not stable:
         state = "NEUTRAL"
         reason = "PRESSURE_HISTORY_UNSTABLE"
-    elif agree_votes >= 2:
+    elif sign60 == bias_sign and sign120 == bias_sign:
         state = "CONFIRMED"
-        reason = "TEMPORAL_PRESSURE_SUPPORTS_BIAS"
-    elif oppose_votes >= 2:
+        reason = "60M_120M_PRESSURE_SUPPORT_BIAS"
+    elif sign60 == -bias_sign and sign120 == -bias_sign:
         state = "CONFLICT"
-        reason = "TEMPORAL_PRESSURE_OPPOSES_BIAS"
+        reason = "60M_120M_PRESSURE_OPPOSE_BIAS"
     else:
         state = "NEUTRAL"
-        reason = "MIXED_PRESSURE_HISTORY"
+        reason = "MULTIWINDOW_PRESSURE_DISAGREEMENT"
+
+    agree_windows = sum(1 for v in (sign30, sign60, sign120) if v == bias_sign)
+    oppose_windows = sum(1 for v in (sign30, sign60, sign120) if v == -bias_sign)
 
     return {
         "available": True,
         "state": state,
         "reason": reason,
-        "method": "LP_TEMPORAL_2H_CONSENSUS_V1",
+        "method": "LP_TEMPORAL_MULTIWINDOW_CONSENSUS_V2",
         "prediction": prediction,
         "direction_confidence": confidence,
         "confidence_threshold": CONFIDENCE_THRESHOLD,
         "sample_count_120m": n120,
+        "persistence_60m": persistence60,
         "persistence_120m": persistence120,
+        "mean_30m": mean30,
+        "mean_60m": mean60,
+        "mean_120m": mean120,
+        "mean_sign_30m": sign30,
+        "mean_sign_60m": sign60,
+        "mean_sign_120m": sign120,
+        "short_term_transition": sign30 != 0 and sign120 != 0 and sign30 != sign120,
+        "agree_windows": agree_windows,
+        "oppose_windows": oppose_windows,
+        # Diagnostics only; these no longer participate in the state decision.
         "signed_now": _finite(features.get("signed_now")),
-        "mean_30m": _finite(features.get("mean_30m")),
-        "mean_60m": _finite(features.get("mean_60m")),
-        "mean_120m": _finite(features.get("mean_120m")),
         "slope_30m": _finite(features.get("slope_30m")),
         "slope_60m": _finite(features.get("slope_60m")),
         "slope_120m": _finite(features.get("slope_120m")),
         "acceleration_2h": _finite(features.get("acceleration_2h")),
         "flips_120m": int(features.get("flips_120m") or 0),
-        "agree_votes": agree_votes,
-        "oppose_votes": oppose_votes,
         "observed_at": features.get("observed_at"),
     }
