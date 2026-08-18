@@ -31,7 +31,6 @@
         rgba(7,11,16,.72)!important;
     }
 
-    /* Current-price line must be visually dominant but not overpower bars. */
     #liqHeatmapModal .liq-modal-price-line{
       position:absolute!important;
       z-index:20!important;
@@ -62,22 +61,23 @@
       white-space:nowrap!important;
     }
 
-    /* Every liquidation level uses the same horizontal reading direction.
-       Price is encoded vertically; intensity is encoded by bar length. */
     #liqHeatmapModal .liq-modal-level{
       position:absolute!important;
       z-index:8!important;
-      left:17%!important;
-      width:66%!important;
+      left:10%!important;
+      width:80%!important;
       height:7px!important;
       transform:translateY(-50%)!important;
       display:flex!important;
       align-items:center!important;
+      gap:10px!important;
       pointer-events:auto!important;
+      opacity:1!important;
     }
 
     #liqHeatmapModal .liq-modal-level > span{
       display:block!important;
+      flex:0 0 auto!important;
       height:100%!important;
       min-width:14px!important;
       border-radius:999px!important;
@@ -85,13 +85,13 @@
     }
 
     #liqHeatmapModal .liq-modal-above > span{
-      background:linear-gradient(90deg,rgba(255,121,94,.72),#ff6374)!important;
-      box-shadow:0 0 10px rgba(255,99,116,.22)!important;
+      background:linear-gradient(90deg,#ff8a7c,#ff6374)!important;
+      box-shadow:0 0 10px rgba(255,99,116,.30)!important;
     }
 
     #liqHeatmapModal .liq-modal-below > span{
-      background:linear-gradient(90deg,rgba(76,229,166,.68),#35d99a)!important;
-      box-shadow:0 0 10px rgba(76,229,166,.20)!important;
+      background:linear-gradient(90deg,#67efba,#35d99a)!important;
+      box-shadow:0 0 10px rgba(76,229,166,.28)!important;
     }
 
     #liqHeatmapModal .liq-modal-strong > span{
@@ -99,32 +99,36 @@
       box-shadow:0 0 14px currentColor!important;
     }
 
-    /* Put selected price labels in a dedicated left gutter instead of on top of bars. */
+    /* Price labels sit immediately after the bar and stay fully opaque/readable. */
     #liqHeatmapModal .liq-modal-price-tag,
     #liqHeatmapModal .liq-modal-level em{
-      position:absolute!important;
-      left:-128px!important;
-      top:50%!important;
-      transform:translateY(-50%)!important;
-      width:116px!important;
-      padding:3px 7px!important;
-      border-radius:6px!important;
-      background:rgba(9,13,19,.94)!important;
-      border:1px solid rgba(255,255,255,.08)!important;
-      color:#d9e0ea!important;
+      position:relative!important;
+      left:auto!important;
+      top:auto!important;
+      transform:none!important;
+      width:auto!important;
+      min-width:74px!important;
+      padding:2px 6px!important;
+      border-radius:5px!important;
+      background:rgba(7,10,15,.96)!important;
+      border:1px solid rgba(255,255,255,.13)!important;
+      color:#f4f7fb!important;
+      opacity:1!important;
       font-style:normal!important;
-      font-size:11px!important;
-      font-weight:750!important;
-      text-align:right!important;
+      font-size:12px!important;
+      font-weight:900!important;
+      text-align:left!important;
       line-height:1.25!important;
       white-space:nowrap!important;
-      text-shadow:none!important;
+      text-shadow:0 1px 2px rgba(0,0,0,.9)!important;
+      box-shadow:0 2px 8px rgba(0,0,0,.28)!important;
+      pointer-events:none!important;
     }
 
     #liqHeatmapModal .liq-modal-above .liq-modal-price-tag,
-    #liqHeatmapModal .liq-modal-above em{color:#ff929e!important}
+    #liqHeatmapModal .liq-modal-above em{color:#ff9ca7!important}
     #liqHeatmapModal .liq-modal-below .liq-modal-price-tag,
-    #liqHeatmapModal .liq-modal-below em{color:#75eabc!important}
+    #liqHeatmapModal .liq-modal-below em{color:#87f3c8!important}
 
     #liqHeatmapModal .liq-modal-axis{
       display:grid!important;
@@ -167,9 +171,9 @@
     @media(max-width:760px){
       #liqHeatmapModal .liq-modal-card{width:96vw!important;padding:16px!important}
       #liqHeatmapModal .liq-modal-map{min-height:430px!important;height:62vh!important}
-      #liqHeatmapModal .liq-modal-level{left:27%!important;width:69%!important}
+      #liqHeatmapModal .liq-modal-level{left:5%!important;width:90%!important;gap:7px!important}
       #liqHeatmapModal .liq-modal-price-tag,
-      #liqHeatmapModal .liq-modal-level em{left:-105px!important;width:96px!important;font-size:10px!important}
+      #liqHeatmapModal .liq-modal-level em{min-width:64px!important;font-size:10px!important;padding:2px 4px!important}
     }
   `;
   document.head.appendChild(style);
