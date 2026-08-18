@@ -8,7 +8,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = PROJECT_ROOT / "data/research/liquidation_pressure/liquidation_pressure.sqlite3"
 
-CONFIDENCE_THRESHOLD = 0.70
+CONFIDENCE_THRESHOLD = 0.60
 MIN_SAMPLES_120M = 60
 MIN_PERSISTENCE_120M = 60.0
 
