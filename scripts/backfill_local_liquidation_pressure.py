@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -56,13 +57,11 @@ def rolling_features(group: pd.DataFrame) -> pd.DataFrame:
             np.where(neg.to_numpy() > pos.to_numpy(), "DOWN", "TIE"),
         )
 
-        # Time-window flip count. Historical stream is approximately minute sampled.
         flips = (sign != sign.shift(1)).astype(float)
         if len(flips):
             flips.iloc[0] = 0.0
         g[f"flips_{minutes}m"] = flips.rolling(win, min_periods=1).sum().to_numpy()
 
-        # Fast trend proxy: current pressure minus pressure at/near window start, per minute.
         prior = ser.reindex(ser.index - pd.Timedelta(minutes=minutes), method="nearest", tolerance=pd.Timedelta(minutes=2))
         g[f"slope_{minutes}m_per_min"] = (ser.to_numpy() - prior.to_numpy()) / float(minutes)
 
@@ -87,10 +86,16 @@ def main() -> int:
     model.load_model(str(MODEL_DIR / "model.cbm"))
 
     wanted_symbols = {s.upper() for s in args.symbols}
-    columns = list(dict.fromkeys([
-        "id", "logged_at", "symbol", "timeframe", "current_price", "liquidation_count",
-        *feature_columns,
+    available_columns = set(pq.ParquetFile(input_path).schema_arrow.names)
+    required_columns = list(dict.fromkeys([
+        "id", "logged_at", "symbol", "timeframe", "current_price", *feature_columns,
     ]))
+    missing_required = [c for c in required_columns if c not in available_columns]
+    if missing_required:
+        raise RuntimeError("Input parquet is missing required model columns: " + ", ".join(missing_required))
+
+    optional_columns = [c for c in ["liquidation_count"] if c in available_columns]
+    columns = required_columns + optional_columns
 
     print("=" * 96)
     print("FAST LOCAL HISTORICAL LIQUIDATION PRESSURE BACKFILL")
@@ -100,10 +105,14 @@ def main() -> int:
     print("Timeframe :", args.timeframe)
     print("Batch size:", f"{args.batch_size:,}")
     print("Model     :", MODEL_DIR / "model.cbm")
+    print("Optional  : liquidation_count", "available" if "liquidation_count" in optional_columns else "N/A (not present in ML feature parquet)")
     print()
 
     print("Loading local topology ML features...")
     df = pd.read_parquet(input_path, columns=columns)
+    if "liquidation_count" not in df.columns:
+        df["liquidation_count"] = np.nan
+
     df["symbol"] = df["symbol"].astype(str)
     df["timeframe"] = df["timeframe"].astype(str)
     df = df[df["symbol"].isin(wanted_symbols) & df["timeframe"].eq(args.timeframe)].copy()
