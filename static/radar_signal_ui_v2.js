@@ -47,6 +47,31 @@
     return `Current 1H Matrix signal is <b class="${signalClass(signal)}">${signal}</b>.<br>Risk confirmation is not available.`;
   }
 
+  // Frozen research rule: only apply LP confirmation when Direction Bias confidence >= 70%.
+  // SHORT_SQUEEZE pressure maps to UPPER_FIRST; LONG_SQUEEZE maps to LOWER_FIRST.
+  function directionConfirmation(item, prediction, confidence) {
+    if (!Number.isFinite(confidence) || confidence < 0.70) {
+      return { state: "NEUTRAL", cls: "confirmation-neutral", icon: "•" };
+    }
+
+    const rawPressureDirection = String(item?.raw_prediction || "").toUpperCase();
+    const pressurePrediction = rawPressureDirection === "SHORT_SQUEEZE"
+      ? "UPPER_FIRST"
+      : rawPressureDirection === "LONG_SQUEEZE"
+        ? "LOWER_FIRST"
+        : null;
+
+    if (!pressurePrediction || !["UPPER_FIRST", "LOWER_FIRST"].includes(prediction)) {
+      return { state: "NEUTRAL", cls: "confirmation-neutral", icon: "•" };
+    }
+
+    if (pressurePrediction === prediction) {
+      return { state: "CONFIRMED", cls: "confirmation-confirmed", icon: "✓" };
+    }
+
+    return { state: "CONFLICT", cls: "confirmation-conflict", icon: "!" };
+  }
+
   function directionBiasHtmlV2(item) {
     const model = item?.direction_model;
     if (!model?.available) {
@@ -54,6 +79,7 @@
         <div class="direction-bias-inline direction-na">
           <div><span>Direction Bias · 1H</span><strong>UNAVAILABLE</strong></div>
           <div><span>Confidence</span><strong>—</strong></div>
+          <div class="direction-confirmation confirmation-neutral"><span>LP Confirmation</span><strong>• NEUTRAL</strong></div>
         </div>`;
     }
     const prediction = String(model.prediction || "N/A").toUpperCase();
@@ -65,10 +91,12 @@
     const lower = prediction === "LOWER_FIRST";
     const cls = upper ? "direction-up" : lower ? "direction-down" : "direction-na";
     const arrow = upper ? "↑" : lower ? "↓" : "•";
+    const confirmation = directionConfirmation(item, prediction, confidence);
     return `
       <div class="direction-bias-inline ${cls}">
         <div><span>Direction Bias · 1H</span><strong>${arrow} ${prediction}</strong></div>
         <div><span>Confidence</span><strong>${confidencePct === null ? "—" : `${confidencePct.toFixed(1)}%`}</strong></div>
+        <div class="direction-confirmation ${confirmation.cls}"><span>LP Confirmation</span><strong>${confirmation.icon} ${confirmation.state}</strong></div>
       </div>`;
   }
 
@@ -156,7 +184,12 @@
     .matrix-explain-icon{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:27px;height:31px;border:2px solid currentColor;border-radius:9px 9px 12px 12px;font-size:14px;font-weight:950}
     .matrix-signal-explain.signal-risk-low .matrix-explain-icon{color:#42e49d}.matrix-signal-explain.signal-risk-high .matrix-explain-icon{color:#ff5f70}
     .matrix-risk-pill-table{padding:5px 8px;font-size:9px}.matrix-risk-pill-table>span{width:14px;height:14px;font-size:9px}
-    @media(max-width:700px){.matrix-signal-side span{font-size:27px}.matrix-signal-side strong{font-size:23px}.matrix-signal-v2{padding:12px}}
+    .direction-bias-inline{display:grid;grid-template-columns:1.4fr .8fr 1fr;gap:10px;align-items:center}
+    .direction-confirmation strong{display:inline-flex;align-items:center;gap:5px;font-size:11px!important;white-space:nowrap}
+    .confirmation-confirmed strong{color:#42e49d!important}
+    .confirmation-conflict strong{color:#ffb84d!important}
+    .confirmation-neutral strong{color:var(--muted)!important}
+    @media(max-width:700px){.matrix-signal-side span{font-size:27px}.matrix-signal-side strong{font-size:23px}.matrix-signal-v2{padding:12px}.direction-bias-inline{grid-template-columns:1fr 1fr}.direction-confirmation{grid-column:1/-1}}
   `;
   document.head.appendChild(style);
 
