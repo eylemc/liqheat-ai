@@ -48,7 +48,9 @@
   }
 
   function directionBiasHtmlV2(item) {
-    const model = item?.direction_model;
+    const temporal = item?.direction_bias_temporal;
+    const raw = item?.direction_model;
+    const model = temporal?.available ? temporal : raw;
     if (!model?.available) {
       return `
         <div class="direction-bias-inline direction-na">
@@ -65,9 +67,12 @@
     const lower = prediction === "LOWER_FIRST";
     const cls = upper ? "direction-up" : lower ? "direction-down" : "direction-na";
     const arrow = upper ? "↑" : lower ? "↓" : "•";
+    const temporalDetail = temporal?.available
+      ? `<small>2H ${String(temporal.state || "").toUpperCase()} · ${Number(temporal.persistence_120m || 0).toFixed(0)}% persistence</small>`
+      : `<small>Raw snapshot</small>`;
     return `
       <div class="direction-bias-inline ${cls}">
-        <div><span>Direction Bias · 1H</span><strong>${arrow} ${prediction}</strong></div>
+        <div><span>Direction Bias · 1H</span><strong>${arrow} ${prediction}</strong>${temporalDetail}</div>
         <div><span>Confidence</span><strong>${confidencePct === null ? "—" : `${confidencePct.toFixed(1)}%`}</strong></div>
       </div>`;
   }
@@ -149,13 +154,14 @@
     .signal-buy{color:#4ce5a6!important}.signal-sell{color:#ff6374!important}.signal-na{color:var(--muted)!important}
     .matrix-risk-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;border:1px solid currentColor;font-size:10px;letter-spacing:.05em;font-weight:900;white-space:nowrap}
     .matrix-risk-pill>span{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border:2px solid currentColor;border-radius:50%;font-size:11px;line-height:1}
-    .signal-risk-low{color:#42e49d!important}.signal-risk-high{color:#ff5f70!important}.signal-risk-na{color:var(--muted)!important}
+    .signal-risk-low{color:#42e49d!important}.signal-risk-high{color:#ff5f70!important}.signal-na{color:var(--muted)!important}
     .matrix-risk-pill.signal-risk-low{background:rgba(66,228,157,.07);border-color:rgba(66,228,157,.25)}
     .matrix-risk-pill.signal-risk-high{background:rgba(255,95,112,.07);border-color:rgba(255,95,112,.28)}
     .matrix-signal-explain{display:flex;align-items:center;gap:10px;margin-top:11px;padding:10px 11px;border-radius:9px;background:rgba(255,255,255,.025);font-size:10px;line-height:1.55;color:#c8d0de!important}
     .matrix-explain-icon{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:27px;height:31px;border:2px solid currentColor;border-radius:9px 9px 12px 12px;font-size:14px;font-weight:950}
     .matrix-signal-explain.signal-risk-low .matrix-explain-icon{color:#42e49d}.matrix-signal-explain.signal-risk-high .matrix-explain-icon{color:#ff5f70}
     .matrix-risk-pill-table{padding:5px 8px;font-size:9px}.matrix-risk-pill-table>span{width:14px;height:14px;font-size:9px}
+    .direction-bias-inline small{display:block;margin-top:3px;font-size:8px;letter-spacing:.03em;color:var(--muted);font-weight:650}
     @media(max-width:700px){.matrix-signal-side span{font-size:27px}.matrix-signal-side strong{font-size:23px}.matrix-signal-v2{padding:12px}}
   `;
   document.head.appendChild(style);
