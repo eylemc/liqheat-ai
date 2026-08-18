@@ -424,13 +424,13 @@ function renderCard(item) {
         <div class="matrix-direction-hero" style="margin-top:0;margin-bottom:12px"><span>Scalp idea · 1M Matrix</span><strong class="${ideaCls}">${idea}</strong></div>
         <div class="ai-risk-heading"><span>NEAR-TERM MARKET HEAT</span><span class="risk-band-pill risk-${heatClass(item)}">${band}</span></div>
         <div class="ai-risk-score"><strong>${score === null ? "—" : Math.round(score)}</strong><span>${score === null ? "" : "/ 100"}</span></div>
-        <div class="ai-risk-sub">15m movement percentile vs historical calibration</div>
+        <div class="ai-risk-sub">Near-term movement percentile vs historical calibration</div>
       </div>
       <div class="matrix-strip">${matrixTimeframeStrip(item)}</div>
       <div class="metric-stack">
         <div class="metric-row"><span>Matrix alignment</span><strong>${alignment === null ? "—" : `${formatNumber(alignment, 1)}%`}</strong></div>
         <div class="metric-row"><span>Liquidation Pressure</span>${liquidationPressureHtml(item)}</div>
-        <div class="metric-row"><span>Heat horizon</span><strong>${riskData(item) ? "NEXT 15 MIN" : "—"}</strong></div>
+        <div class="metric-row"><span>Heat horizon</span><strong>${riskData(item) ? "NEAR TERM" : "—"}</strong></div>
       </div>
       ${compactLiquidationHeatmap(item)}
       <div class="reason-box">${heatExplanation(item)}</div>
