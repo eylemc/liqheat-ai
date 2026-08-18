@@ -73,6 +73,7 @@
       gap:10px!important;
       pointer-events:auto!important;
       opacity:1!important;
+      cursor:crosshair!important;
     }
 
     #liqHeatmapModal .liq-modal-level > span{
@@ -130,6 +131,27 @@
     #liqHeatmapModal .liq-modal-below .liq-modal-price-tag,
     #liqHeatmapModal .liq-modal-below em{color:#87f3c8!important}
 
+    #liqHeatmapHoverTooltip{
+      position:fixed;
+      z-index:99999;
+      display:none;
+      min-width:150px;
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(7,10,15,.97);
+      box-shadow:0 8px 24px rgba(0,0,0,.42);
+      pointer-events:none;
+      color:#f5f7fb;
+      font-size:12px;
+      line-height:1.35;
+      white-space:nowrap;
+    }
+    #liqHeatmapHoverTooltip strong{display:block;font-size:13px;font-weight:900;color:#fff}
+    #liqHeatmapHoverTooltip span{display:block;margin-top:2px;color:#aab4c2;font-size:11px}
+    #liqHeatmapHoverTooltip.below strong{color:#87f3c8}
+    #liqHeatmapHoverTooltip.above strong{color:#ff9ca7}
+
     #liqHeatmapModal .liq-modal-axis{
       display:grid!important;
       grid-template-columns:1fr auto 1fr!important;
@@ -177,4 +199,61 @@
     }
   `;
   document.head.appendChild(style);
+
+  const ensureTooltip = () => {
+    let tip = document.getElementById("liqHeatmapHoverTooltip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "liqHeatmapHoverTooltip";
+      document.body.appendChild(tip);
+    }
+    return tip;
+  };
+
+  const hideTooltip = () => {
+    const tip = document.getElementById("liqHeatmapHoverTooltip");
+    if (tip) tip.style.display = "none";
+  };
+
+  document.addEventListener("pointerover", (event) => {
+    const level = event.target.closest?.("#liqHeatmapModal .liq-modal-level");
+    if (!level) return;
+
+    const raw = level.dataset.hoverText || level.getAttribute("title") || "";
+    if (!raw) return;
+    level.dataset.hoverText = raw;
+    level.removeAttribute("title");
+
+    const [price, volume] = raw.split("·").map((part) => part.trim());
+    const tip = ensureTooltip();
+    tip.className = level.classList.contains("liq-modal-below") ? "below" : "above";
+    tip.innerHTML = `<strong>Level ${price || "—"}</strong>${volume ? `<span>Liquidation ${volume}</span>` : ""}`;
+    tip.style.display = "block";
+  });
+
+  document.addEventListener("pointermove", (event) => {
+    const level = event.target.closest?.("#liqHeatmapModal .liq-modal-level");
+    if (!level) return;
+    const tip = ensureTooltip();
+    const pad = 14;
+    let x = event.clientX + pad;
+    let y = event.clientY + pad;
+    const rect = tip.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth - 8) x = event.clientX - rect.width - pad;
+    if (y + rect.height > window.innerHeight - 8) y = event.clientY - rect.height - pad;
+    tip.style.left = `${Math.max(8, x)}px`;
+    tip.style.top = `${Math.max(8, y)}px`;
+  });
+
+  document.addEventListener("pointerout", (event) => {
+    const level = event.target.closest?.("#liqHeatmapModal .liq-modal-level");
+    if (!level) return;
+    const next = event.relatedTarget;
+    if (next && level.contains(next)) return;
+    hideTooltip();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") hideTooltip();
+  });
 })();
